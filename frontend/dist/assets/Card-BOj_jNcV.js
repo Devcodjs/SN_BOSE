@@ -1,0 +1,1 @@
+import{j as e,m as s}from"./index-k9UjwgYu.js";function i({children:r,className:o="",hover:a=!0,...d}){return e.jsx(s.div,{whileHover:a?{y:-3,boxShadow:"var(--shadow-card-hover)"}:{},className:`bg-white rounded-xl shadow-[var(--shadow-card)] border border-gray-100 transition-all duration-300 overflow-hidden ${o}`,...d,children:r})}export{i as C};
