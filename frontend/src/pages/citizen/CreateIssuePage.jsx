@@ -270,8 +270,17 @@ export default function CreateIssuePage() {
 
       const res = await API.post('/issues', data, { headers: { 'Content-Type': 'multipart/form-data' } });
       confetti({ particleCount: 160, spread: 80, origin: { y: 0.6 }, colors: ['#2563eb', '#3b82f6', '#93c5fd', '#dbeafe'] });
-      toast.success('Issue reported successfully! 🎉');
-      setTimeout(() => navigate(`/issues/${res.data.data._id}`), 1500);
+      
+      if (res.data.data.isDuplicate) {
+        toast('This issue was detected as a duplicate of an existing report. It has been linked as corroborating evidence!', {
+          icon: '🤝',
+          duration: 6000,
+        });
+      } else {
+        toast.success('Issue reported successfully! 🎉');
+      }
+      
+      setTimeout(() => navigate(`/issues/${res.data.data._id}`), 2000);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to report issue');
     } finally {

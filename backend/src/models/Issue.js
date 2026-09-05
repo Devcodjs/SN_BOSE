@@ -4,22 +4,19 @@ const issueSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, 'Issue title is required'],
+      required: [true, 'Title is required'],
       trim: true,
-      maxlength: [200, 'Title cannot exceed 200 characters'],
+      maxlength: [100, 'Title cannot exceed 100 characters'],
     },
     description: {
       type: String,
-      required: [true, 'Issue description is required'],
+      required: [true, 'Description is required'],
       maxlength: [2000, 'Description cannot exceed 2000 characters'],
     },
     category: {
       type: String,
       required: [true, 'Category is required'],
-      enum: {
-        values: ['Roads', 'Garbage', 'Water', 'Electricity', 'Sanitation', 'Other'],
-        message: '{VALUE} is not a valid category',
-      },
+      enum: ['Roads', 'Water', 'Garbage', 'Electricity', 'Sanitation', 'Other'],
     },
     status: {
       type: String,
@@ -31,59 +28,60 @@ const issueSchema = new mongoose.Schema(
       enum: ['Low', 'Medium', 'High', 'Critical'],
       default: 'Medium',
     },
-    image: {
-      type: String, // Cloudinary URL
+    // Multiple evidence images (max 3)
+    images: {
+      type: [String],
+      validate: [arr => arr.length <= 3, 'Maximum 3 images allowed'],
     },
-    imagePublicId: {
-      type: String, // For Cloudinary deletion
-    },
+    imagePublicIds: [String],
+    // Municipal proof images (before/after)
+    proofImages: [String],
+    // GeoJSON Point
     location: {
-      type: {
-        type: String,
-        default: 'Point',
-        enum: ['Point'],
-      },
-      coordinates: {
-        type: [Number], // [longitude, latitude]
-        default: [0, 0],
-      },
-      address: {
-        type: String,
-        trim: true,
-      },
+      type: { type: String, default: 'Point', enum: ['Point'] },
+      coordinates: { type: [Number], default: [0, 0] },
+      address: { type: String, trim: true },
     },
-    reportedBy: {
+    submittedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Reporter is required'],
+      required: true,
     },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    upvoteCount: {
-      type: Number,
-      default: 0,
+    department: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Department',
     },
-    resolvedAt: {
-      type: Date,
-    },
+    upvoteCount: { type: Number, default: 0 },
+    resolvedAt: { type: Date },
+    
+    // Intelligent Features
+    priorityScore: { type: Number, default: 50 }, // Base for 'Medium' priority
+    severity: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'], default: 'Medium' },
+    corroborationCount: { type: Number, default: 0 },
+    
+    isDuplicate: { type: Boolean, default: false },
+    duplicateOf: { type: mongoose.Schema.Types.ObjectId, ref: 'Issue', default: null },
+    duplicateScore: { type: Number, default: 0 },
+    duplicateStatus: { type: String, enum: ['none', 'possible', 'confirmed', 'rejected'], default: 'none' },
+    
+    supportingReports: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Issue' }],
+    
+    abuseStatus: { type: String, enum: ['clean', 'flagged', 'reviewed_safe', 'reviewed_abuse'], default: 'clean' },
+    lastPriorityCalculation: { type: Date, default: null },
   },
-  {
-    timestamps: true, // Adds createdAt, updatedAt
-  }
+  { timestamps: true }
 );
 
-// Compound index for filtered queries (most common query pattern)
 issueSchema.index({ status: 1, category: 1, createdAt: -1 });
-
-// Index for user's own issues
-issueSchema.index({ reportedBy: 1 });
-
-// Geospatial index for location-based queries
+issueSchema.index({ submittedBy: 1 });
+issueSchema.index({ department: 1 });
 issueSchema.index({ location: '2dsphere' });
-
-// Text index for search
 issueSchema.index({ title: 'text', description: 'text' });
+issueSchema.index({ duplicateOf: 1 });
+issueSchema.index({ priorityScore: -1 });
 
 module.exports = mongoose.model('Issue', issueSchema);

@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { StatusBadge, CategoryBadge, PriorityBadge } from '../ui/Badge';
-import { ThumbsUp, MapPin, Clock, User } from 'lucide-react';
+import { StatusBadge, CategoryBadge } from '../ui/Badge';
+import PriorityBadge from '../priority/PriorityBadge';
+import PriorityProgressBar from '../priority/PriorityProgressBar';
+import { ThumbsUp, MapPin, Clock, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 /* ─────────────────────────────────────────────
@@ -288,17 +290,21 @@ export default function IssueCard({ issue, index = 0 }) {
         {/* ── BODY ── */}
         <div style={s.body}>
 
-          {/* Badge row */}
           <div style={s.badgeRow}>
             <CategoryBadge category={issue.category} />
             <StatusBadge status={issue.status} />
-            {issue.priority && <PriorityBadge priority={issue.priority} />}
+            <PriorityBadge score={issue.priorityScore} label={issue.priority} />
           </div>
 
           {/* Title */}
           <h3 data-title style={s.title}>
             {issue.title}
           </h3>
+          
+          {/* Priority Progress */}
+          <div style={{ marginTop: '4px', marginBottom: '4px' }}>
+            <PriorityProgressBar score={issue.priorityScore} height="h-1.5" />
+          </div>
 
           {/* Meta row */}
           <div style={s.metaRow}>
@@ -312,6 +318,12 @@ export default function IssueCard({ issue, index = 0 }) {
               <Clock size={13} color="#94a3b8" />
               {formatDistanceToNow(new Date(issue.createdAt), { addSuffix: true })}
             </span>
+            {issue.corroborationCount > 0 && (
+              <span style={{ ...s.metaItem, color: '#0ea5e9', fontWeight: 600 }}>
+                <Users size={13} />
+                {issue.corroborationCount} duplicates linked
+              </span>
+            )}
           </div>
         </div>
 

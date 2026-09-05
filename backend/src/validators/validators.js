@@ -66,6 +66,12 @@ const validateIssue = (body) => {
     errors.push(`Category must be one of: ${validCategories.join(', ')}`);
   }
 
+  // Adding severity validation
+  const validSeverities = ['Low', 'Medium', 'High', 'Critical'];
+  if (body.severity && !validSeverities.includes(body.severity)) {
+    errors.push(`Severity must be one of: ${validSeverities.join(', ')}`);
+  }
+
   return errors;
 };
 

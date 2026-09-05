@@ -9,7 +9,8 @@ import IssueCard from '../../components/issues/IssueCard';
 import { SkeletonCard } from '../../components/ui/Skeleton';
 import Button from '../../components/ui/Button';
 import Avatar from '../../components/ui/Avatar';
-import { Plus, Filter, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
+import IdentityVerificationCard from '../../components/citizen/IdentityVerificationCard';
+import { Plus, Filter, ClipboardList, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 
 /* ─────────────── Status colour map ─────────────── */
 const STATUS_META = {
@@ -148,6 +149,7 @@ export default function CitizenDashboard() {
             {/* Optional stats row */}
             {(stats.total !== undefined) && (
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <StatPill label="Trust Score" value={user?.trustScore ?? 100} color="#2563eb" />
                 <StatPill label="Total"       value={stats.total     ?? 0} color="#0f172a" />
                 <StatPill label="Pending"     value={stats.pending   ?? 0} color="#ca8a04" />
                 <StatPill label="In Progress" value={stats.inProgress?? 0} color="#2563eb" />
@@ -174,6 +176,15 @@ export default function CitizenDashboard() {
             </Link>
           </div>
         </div>
+
+        {/* ══════════════════════════════════════
+            1.5 IDENTITY VERIFICATION (If needed)
+        ══════════════════════════════════════ */}
+        {!user?.identityVerified && (
+          <div style={{ width: '100%' }}>
+            <IdentityVerificationCard user={user} />
+          </div>
+        )}
 
         {/* ══════════════════════════════════════
             2. FILTER BAR CARD

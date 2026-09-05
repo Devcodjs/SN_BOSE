@@ -4,13 +4,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import API from '../../services/api';
 import PageWrapper from '../../components/layout/PageWrapper';
-import { StatusBadge, CategoryBadge, PriorityBadge } from '../../components/ui/Badge';
+import { StatusBadge, CategoryBadge } from '../../components/ui/Badge';
+import PriorityBadge from '../../components/priority/PriorityBadge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import KPICard from '../../components/charts/KPICard';
 import { SkeletonStats, SkeletonRow } from '../../components/ui/Skeleton';
 import { BarChart3, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
+import PriorityQueue from '../../components/admin/PriorityQueue';
+import AbuseManagement from '../../components/admin/AbuseManagement';
 
 /* ─── tiny reusable select ──────────────────────────────────────────────── */
 function FilterSelect({ value, onChange, children }) {
@@ -62,6 +66,7 @@ export default function AdminDashboard() {
   const [page, setPage]           = useState(1);
   const [modal, setModal]         = useState(null);
   const [modalForm, setModalForm] = useState({ status: '', comment: '', departmentId: '' });
+  const [activeTab, setActiveTab] = useState('queue');
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-stats'],
@@ -179,7 +184,6 @@ export default function AdminDashboard() {
               gridTemplateColumns: 'repeat(4, minmax(0,1fr))',
               gap: '16px',
             }}>
-              {/* Total */}
               <div style={kpiStyle('#f0f9ff', '#bae6fd')}>
                 <div style={kpiIconStyle('#e0f2fe')}>
                   <span style={{ fontSize: '18px' }}>📋</span>
@@ -189,7 +193,6 @@ export default function AdminDashboard() {
                   <p style={kpiLbl}>Total issues</p>
                 </div>
               </div>
-              {/* Pending */}
               <div style={kpiStyle('#fffbeb', '#fde68a')}>
                 <div style={kpiIconStyle('#fef3c7')}>
                   <span style={{ fontSize: '18px' }}>🕐</span>
@@ -199,7 +202,6 @@ export default function AdminDashboard() {
                   <p style={kpiLbl}>Pending</p>
                 </div>
               </div>
-              {/* In Progress */}
               <div style={kpiStyle('#f0f9ff', '#bae6fd')}>
                 <div style={kpiIconStyle('#e0f2fe')}>
                   <span style={{ fontSize: '18px' }}>🔧</span>
@@ -209,7 +211,6 @@ export default function AdminDashboard() {
                   <p style={kpiLbl}>In progress</p>
                 </div>
               </div>
-              {/* Resolution rate */}
               <div style={kpiStyle('#f0fdf4', '#bbf7d0')}>
                 <div style={kpiIconStyle('#dcfce7')}>
                   <span style={{ fontSize: '18px' }}>✅</span>
@@ -223,294 +224,318 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* ══ FILTERS ═════════════════════════════════════════════════════ */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          flexWrap: 'wrap',
-          padding: '14px 18px',
-          background: '#f8fcff',
-          border: '1px solid #bae6fd',
-          borderRadius: '12px',
-          marginBottom: '20px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginRight: '4px' }}>
-            <Filter size={14} color="#0284c7" />
-            <span style={{ fontSize: '12px', color: '#0369a1', fontWeight: 500 }}>Filter</span>
-          </div>
-
-          <FilterSelect
-            value={filters.status}
-            onChange={e => { setFilters(f => ({ ...f, status: e.target.value })); setPage(1); }}
-          >
-            <option value="">All statuses</option>
-            {['Pending', 'In Progress', 'Resolved', 'Rejected'].map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </FilterSelect>
-
-          <FilterSelect
-            value={filters.category}
-            onChange={e => { setFilters(f => ({ ...f, category: e.target.value })); setPage(1); }}
-          >
-            <option value="">All categories</option>
-            {['Roads', 'Water', 'Garbage', 'Electricity', 'Sanitation', 'Other'].map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </FilterSelect>
-
-          {/* Clear button — only when a filter is active */}
-          {(filters.status || filters.category || filters.priority) && (
+        {/* ══ TAB NAVIGATION ══════════════════════════════════════════════ */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {[
+            { key: 'queue', label: '🔥 Priority Queue' },
+            { key: 'overview', label: '📋 All Issues' },
+            { key: 'abuse', label: '🛡️ Abuse Management' },
+          ].map(tab => (
             <button
-              onClick={() => { setFilters({ status: '', category: '', priority: '' }); setPage(1); }}
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
               style={{
-                fontSize: '12px', color: '#dc2626',
-                background: '#fff5f5', border: '1px solid #fecaca',
-                borderRadius: '8px', padding: '7px 12px',
-                cursor: 'pointer', fontWeight: 500,
+                padding: '10px 20px', borderRadius: '12px', fontSize: '14px', fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
+                ...(activeTab === tab.key
+                  ? { background: '#0284c7', color: '#fff', border: '1px solid #0369a1', boxShadow: '0 4px 6px -1px rgba(2, 132, 199, 0.2)' }
+                  : { background: '#fff', color: '#475569', border: '1px solid #e2e8f0' })
               }}
             >
-              Clear filters
+              {tab.label}
             </button>
-          )}
+          ))}
         </div>
 
-        {/* ══ ISSUES TABLE ════════════════════════════════════════════════ */}
-        <div style={{ marginBottom: '24px' }}>
-          <SectionLabel>All issues</SectionLabel>
-          <div style={{
-            background: '#fff',
-            border: '1px solid #bae6fd',
-            borderRadius: '14px',
-            overflow: 'hidden',
-          }}>
-            {isLoading ? (
-              <div style={{ padding: '8px 0' }}>
-                {[...Array(5)].map((_, i) => <SkeletonRow key={i} />)}
-              </div>
-            ) : issues.length === 0 ? (
-              <div style={{
-                padding: '64px 24px',
-                textAlign: 'center',
-              }}>
-                <p style={{ fontSize: '28px', marginBottom: '10px' }}>📭</p>
-                <p style={{ fontSize: '14px', color: '#94a3b8' }}>No issues found</p>
-              </div>
-            ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                  <thead>
-                    <tr style={{ background: '#f0f9ff', borderBottom: '1px solid #bae6fd' }}>
-                      {['Issue', 'Category', 'Status', 'Priority', 'Reporter', 'Age', 'Actions'].map(h => (
-                        <th key={h} style={{
-                          padding: '12px 16px',
-                          textAlign: 'left',
-                          fontSize: '11px',
-                          fontWeight: 500,
-                          color: '#0369a1',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.07em',
-                          whiteSpace: 'nowrap',
-                        }}>
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {issues.map((iss, idx) => (
-                      <tr
-                        key={iss._id}
-                        style={{
-                          borderBottom: idx < issues.length - 1 ? '1px solid #f0f9ff' : 'none',
-                          transition: 'background 0.12s',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#f8fcff'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      >
-                        {/* Title */}
-                        <td style={{ padding: '14px 16px', maxWidth: '260px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{
-                              width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
-                              background: statusDot[iss.status] || '#94a3b8',
-                            }} />
-                            <Link
-                              to={`/issues/${iss._id}`}
-                              style={{
-                                fontSize: '13px', fontWeight: 500,
-                                color: '#0c4a6e',
-                                textDecoration: 'none',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              {iss.title}
-                            </Link>
-                          </div>
-                        </td>
+        {/* ══ TAB CONTENT ═════════════════════════════════════════════════ */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === 'queue' && <PriorityQueue />}
 
-                        {/* Category */}
-                        <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                          <CategoryBadge category={iss.category} />
-                        </td>
+            {activeTab === 'abuse' && <AbuseManagement />}
 
-                        {/* Status */}
-                        <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                          <StatusBadge status={iss.status} />
-                        </td>
+            {activeTab === 'overview' && (
+              <>
+                {/* ══ FILTERS ═════════════════════════════════════════════ */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  flexWrap: 'wrap',
+                  padding: '14px 18px',
+                  background: '#f8fcff',
+                  border: '1px solid #bae6fd',
+                  borderRadius: '12px',
+                  marginBottom: '20px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginRight: '4px' }}>
+                    <Filter size={14} color="#0284c7" />
+                    <span style={{ fontSize: '12px', color: '#0369a1', fontWeight: 500 }}>Filter</span>
+                  </div>
 
-                        {/* Priority */}
-                        <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                          <PriorityBadge priority={iss.priority} />
-                        </td>
-
-                        {/* Reporter */}
-                        <td style={{ padding: '14px 16px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                            <div style={{
-                              width: '24px', height: '24px', borderRadius: '50%',
-                              background: '#e0f2fe',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '10px', fontWeight: 500, color: '#0369a1',
-                              flexShrink: 0,
-                            }}>
-                              {iss.submittedBy?.name?.[0]?.toUpperCase() || '?'}
-                            </div>
-                            <span style={{ fontSize: '13px', color: '#334155', whiteSpace: 'nowrap' }}>
-                              {iss.submittedBy?.name}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Age */}
-                        <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                            {formatDistanceToNow(new Date(iss.createdAt), { addSuffix: true })}
-                          </span>
-                        </td>
-
-                        {/* Actions */}
-                        <td style={{ padding: '14px 16px' }}>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            {iss.status === 'Pending' && (
-                              <button
-                                onClick={() => {
-                                  setModal({ type: 'assign', issue: iss });
-                                  setModalForm({ departmentId: '', comment: '' });
-                                }}
-                                style={{
-                                  fontSize: '12px', fontWeight: 500,
-                                  padding: '6px 14px',
-                                  background: '#e0f2fe',
-                                  color: '#0369a1',
-                                  border: '1px solid #bae6fd',
-                                  borderRadius: '8px',
-                                  cursor: 'pointer',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                Assign
-                              </button>
-                            )}
-                            {!['Resolved', 'Rejected'].includes(iss.status) && (
-                              <button
-                                onClick={() => {
-                                  setModal({ type: 'status', issue: iss });
-                                  setModalForm({ status: '', comment: '' });
-                                }}
-                                style={{
-                                  fontSize: '12px', fontWeight: 500,
-                                  padding: '6px 14px',
-                                  background: '#f0fdf4',
-                                  color: '#065f46',
-                                  border: '1px solid #bbf7d0',
-                                  borderRadius: '8px',
-                                  cursor: 'pointer',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                Update
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
+                  <FilterSelect
+                    value={filters.status}
+                    onChange={e => { setFilters(f => ({ ...f, status: e.target.value })); setPage(1); }}
+                  >
+                    <option value="">All statuses</option>
+                    {['Pending', 'In Progress', 'Resolved', 'Rejected'].map(s => (
+                      <option key={s} value={s}>{s}</option>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </FilterSelect>
+
+                  <FilterSelect
+                    value={filters.category}
+                    onChange={e => { setFilters(f => ({ ...f, category: e.target.value })); setPage(1); }}
+                  >
+                    <option value="">All categories</option>
+                    {['Roads', 'Water', 'Garbage', 'Electricity', 'Sanitation', 'Other'].map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </FilterSelect>
+
+                  {(filters.status || filters.category || filters.priority) && (
+                    <button
+                      onClick={() => { setFilters({ status: '', category: '', priority: '' }); setPage(1); }}
+                      style={{
+                        fontSize: '12px', color: '#dc2626',
+                        background: '#fff5f5', border: '1px solid #fecaca',
+                        borderRadius: '8px', padding: '7px 12px',
+                        cursor: 'pointer', fontWeight: 500,
+                      }}
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+
+                {/* ══ ISSUES TABLE ════════════════════════════════════════ */}
+                <div style={{ marginBottom: '24px' }}>
+                  <SectionLabel>All issues</SectionLabel>
+                  <div style={{
+                    background: '#fff',
+                    border: '1px solid #bae6fd',
+                    borderRadius: '14px',
+                    overflow: 'hidden',
+                  }}>
+                    {isLoading ? (
+                      <div style={{ padding: '8px 0' }}>
+                        {[...Array(5)].map((_, i) => <SkeletonRow key={i} />)}
+                      </div>
+                    ) : issues.length === 0 ? (
+                      <div style={{ padding: '64px 24px', textAlign: 'center' }}>
+                        <p style={{ fontSize: '28px', marginBottom: '10px' }}>📭</p>
+                        <p style={{ fontSize: '14px', color: '#94a3b8' }}>No issues found</p>
+                      </div>
+                    ) : (
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                          <thead>
+                            <tr style={{ background: '#f0f9ff', borderBottom: '1px solid #bae6fd' }}>
+                              {['Issue', 'Category', 'Status', 'Priority', 'Reporter', 'Age', 'Actions'].map(h => (
+                                <th key={h} style={{
+                                  padding: '12px 16px',
+                                  textAlign: 'left',
+                                  fontSize: '11px',
+                                  fontWeight: 500,
+                                  color: '#0369a1',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.07em',
+                                  whiteSpace: 'nowrap',
+                                }}>
+                                  {h}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {issues.map((iss, idx) => (
+                              <tr
+                                key={iss._id}
+                                style={{
+                                  borderBottom: idx < issues.length - 1 ? '1px solid #f0f9ff' : 'none',
+                                  transition: 'background 0.12s',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = '#f8fcff'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                              >
+                                <td style={{ padding: '14px 16px', maxWidth: '260px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{
+                                      width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
+                                      background: statusDot[iss.status] || '#94a3b8',
+                                    }} />
+                                    <Link
+                                      to={`/issues/${iss._id}`}
+                                      style={{
+                                        fontSize: '13px', fontWeight: 500,
+                                        color: '#0c4a6e',
+                                        textDecoration: 'none',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                      }}
+                                    >
+                                      {iss.title}
+                                    </Link>
+                                  </div>
+                                </td>
+                                <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                                  <CategoryBadge category={iss.category} />
+                                </td>
+                                <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                                  <StatusBadge status={iss.status} />
+                                </td>
+                                <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                                  <PriorityBadge score={iss.priorityScore} label={iss.priority} />
+                                </td>
+                                <td style={{ padding: '14px 16px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                                    <div style={{
+                                      width: '24px', height: '24px', borderRadius: '50%',
+                                      background: '#e0f2fe',
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      fontSize: '10px', fontWeight: 500, color: '#0369a1',
+                                      flexShrink: 0,
+                                    }}>
+                                      {iss.submittedBy?.name?.[0]?.toUpperCase() || '?'}
+                                    </div>
+                                    <span style={{ fontSize: '13px', color: '#334155', whiteSpace: 'nowrap' }}>
+                                      {iss.submittedBy?.name}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                                  <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                                    {formatDistanceToNow(new Date(iss.createdAt), { addSuffix: true })}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '14px 16px' }}>
+                                  <div style={{ display: 'flex', gap: '8px' }}>
+                                    {iss.status === 'Pending' && (
+                                      <button
+                                        onClick={() => {
+                                          setModal({ type: 'assign', issue: iss });
+                                          setModalForm({ departmentId: '', comment: '' });
+                                        }}
+                                        style={{
+                                          fontSize: '12px', fontWeight: 500,
+                                          padding: '6px 14px',
+                                          background: '#e0f2fe',
+                                          color: '#0369a1',
+                                          border: '1px solid #bae6fd',
+                                          borderRadius: '8px',
+                                          cursor: 'pointer',
+                                          whiteSpace: 'nowrap',
+                                        }}
+                                      >
+                                        Assign
+                                      </button>
+                                    )}
+                                    {!['Resolved', 'Rejected'].includes(iss.status) && (
+                                      <button
+                                        onClick={() => {
+                                          setModal({ type: 'status', issue: iss });
+                                          setModalForm({ status: '', comment: '' });
+                                        }}
+                                        style={{
+                                          fontSize: '12px', fontWeight: 500,
+                                          padding: '6px 14px',
+                                          background: '#f0fdf4',
+                                          color: '#065f46',
+                                          border: '1px solid #bbf7d0',
+                                          borderRadius: '8px',
+                                          cursor: 'pointer',
+                                          whiteSpace: 'nowrap',
+                                        }}
+                                      >
+                                        Update
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ══ PAGINATION ══════════════════════════════════════════ */}
+                {pagination && pagination.totalPages > 1 && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', gap: '8px',
+                  }}>
+                    <button
+                      onClick={() => setPage(p => p - 1)}
+                      disabled={page <= 1}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '8px 14px',
+                        background: '#fff',
+                        border: '1px solid #bae6fd',
+                        borderRadius: '8px',
+                        fontSize: '13px', color: page <= 1 ? '#cbd5e1' : '#0369a1',
+                        cursor: page <= 1 ? 'not-allowed' : 'pointer',
+                        fontWeight: 500,
+                      }}
+                    >
+                      <ChevronLeft size={14} /> Prev
+                    </button>
+
+                    {[...Array(pagination.totalPages)].map((_, i) => {
+                      const p = i + 1;
+                      const active = p === page;
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => setPage(p)}
+                          style={{
+                            width: '34px', height: '34px',
+                            borderRadius: '8px',
+                            fontSize: '13px', fontWeight: 500,
+                            border: active ? 'none' : '1px solid #bae6fd',
+                            background: active ? '#0ea5e9' : '#fff',
+                            color: active ? '#fff' : '#0369a1',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {p}
+                        </button>
+                      );
+                    })}
+
+                    <button
+                      onClick={() => setPage(p => p + 1)}
+                      disabled={page >= pagination.totalPages}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '8px 14px',
+                        background: '#fff',
+                        border: '1px solid #bae6fd',
+                        borderRadius: '8px',
+                        fontSize: '13px', color: page >= pagination.totalPages ? '#cbd5e1' : '#0369a1',
+                        cursor: page >= pagination.totalPages ? 'not-allowed' : 'pointer',
+                        fontWeight: 500,
+                      }}
+                    >
+                      Next <ChevronRight size={14} />
+                    </button>
+                  </div>
+                )}
+              </>
             )}
-          </div>
-        </div>
-
-        {/* ══ PAGINATION ══════════════════════════════════════════════════ */}
-        {pagination && pagination.totalPages > 1 && (
-          <div style={{
-            display: 'flex', alignItems: 'center',
-            justifyContent: 'center', gap: '8px',
-          }}>
-            <button
-              onClick={() => setPage(p => p - 1)}
-              disabled={page <= 1}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '4px',
-                padding: '8px 14px',
-                background: '#fff',
-                border: '1px solid #bae6fd',
-                borderRadius: '8px',
-                fontSize: '13px', color: page <= 1 ? '#cbd5e1' : '#0369a1',
-                cursor: page <= 1 ? 'not-allowed' : 'pointer',
-                fontWeight: 500,
-              }}
-            >
-              <ChevronLeft size={14} /> Prev
-            </button>
-
-            {/* Page numbers */}
-            {[...Array(pagination.totalPages)].map((_, i) => {
-              const p = i + 1;
-              const active = p === page;
-              return (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  style={{
-                    width: '34px', height: '34px',
-                    borderRadius: '8px',
-                    fontSize: '13px', fontWeight: 500,
-                    border: active ? 'none' : '1px solid #bae6fd',
-                    background: active ? '#0ea5e9' : '#fff',
-                    color: active ? '#fff' : '#0369a1',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {p}
-                </button>
-              );
-            })}
-
-            <button
-              onClick={() => setPage(p => p + 1)}
-              disabled={page >= pagination.totalPages}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '4px',
-                padding: '8px 14px',
-                background: '#fff',
-                border: '1px solid #bae6fd',
-                borderRadius: '8px',
-                fontSize: '13px', color: page >= pagination.totalPages ? '#cbd5e1' : '#0369a1',
-                cursor: page >= pagination.totalPages ? 'not-allowed' : 'pointer',
-                fontWeight: 500,
-              }}
-            >
-              Next <ChevronRight size={14} />
-            </button>
-          </div>
-        )}
+          </motion.div>
+        </AnimatePresence>
 
         {/* ══ MODAL ═══════════════════════════════════════════════════════ */}
         <Modal
@@ -521,7 +546,6 @@ export default function AdminDashboard() {
           {modal && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-              {/* Issue title chip */}
               <div style={{
                 background: '#f0f9ff',
                 border: '1px solid #bae6fd',
@@ -532,7 +556,6 @@ export default function AdminDashboard() {
                 {modal.issue.title}
               </div>
 
-              {/* Assign: department select */}
               {modal.type === 'assign' && depts && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
@@ -555,7 +578,6 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* Status: status select */}
               {modal.type === 'status' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
@@ -582,7 +604,6 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* Comment */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
                   Note (optional)
@@ -603,7 +624,6 @@ export default function AdminDashboard() {
                 />
               </div>
 
-              {/* Footer buttons */}
               <div style={{
                 display: 'flex', justifyContent: 'flex-end', gap: '10px',
                 paddingTop: '4px',

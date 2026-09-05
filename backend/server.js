@@ -1,78 +1,67 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
+const path = require('path');
 const connectDB = require('./src/config/db');
 const errorHandler = require('./src/middleware/errorHandler');
+const { apiLimiter } = require('./src/middleware/rateLimiter');
 
-// Load env vars
 dotenv.config();
 
-// Route imports
 const authRoutes = require('./src/routes/authRoutes');
 const issueRoutes = require('./src/routes/issueRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 const analyticsRoutes = require('./src/routes/analyticsRoutes');
+const rewardRoutes = require('./src/routes/rewardRoutes');
+const identityRoutes = require('./src/routes/identityRoutes');
+const abuseRoutes = require('./src/routes/abuseRoutes');
 
-// Initialize Express
 const app = express();
 
-// ============ MIDDLEWARE ============
-
-// CORS — allow frontend origin
+// ── Security & parsing ──
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use('/certificates', express.static(path.join(__dirname, 'public', 'certificates')));
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true,
 }));
-
-// Request logging
-if (process.env.NODE_ENV !== 'production') {
-  app.use(morgan('dev'));
-}
-
-// Body parsers
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(apiLimiter);
 
-// ============ ROUTES ============
+if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 
-// Health check
+// ── Routes ──
 app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Civic Issue Platform API is running',
-    timestamp: new Date().toISOString(),
-  });
+  res.json({ success: true, message: 'CivicPulse API v2 is running', timestamp: new Date().toISOString() });
 });
 
-// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/issues', issueRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/rewards', rewardRoutes);
+app.use('/api/identity', identityRoutes);
+app.use('/api/admin/abuse', abuseRoutes);
 
-// 404 handler
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: `Route ${req.method} ${req.originalUrl} not found`,
-  });
+  res.status(404).json({ success: false, message: `Route ${req.method} ${req.originalUrl} not found` });
 });
 
-// Global error handler (must be last)
 app.use(errorHandler);
 
-// ============ START SERVER ============
-
+// ── Start ──
 const PORT = process.env.PORT || 8000;
 
 const startServer = async () => {
   try {
-    // Connect to MongoDB
     await connectDB();
-
     app.listen(PORT, () => {
-      console.log(`\n🚀 Server running on port ${PORT}`);
+      console.log(`\n🚀 CivicPulse v2 running on port ${PORT}`);
       console.log(`📡 API: http://localhost:${PORT}/api`);
       console.log(`❤️  Health: http://localhost:${PORT}/api/health\n`);
     });

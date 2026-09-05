@@ -21,30 +21,47 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
-      select: false, // Don't return password in queries by default
+      select: false,
     },
     role: {
       type: String,
-      enum: ['citizen', 'admin'],
+      enum: ['citizen', 'admin', 'municipality'],
       default: 'citizen',
     },
-    phone: {
-      type: String,
-      trim: true,
+    phone: { type: String, trim: true },
+    avatar: { type: String },
+    refreshToken: { type: String, select: false },
+    // Rewards
+    rewards: {
+      treesPlanted: { type: Number, default: 0 },
+      certificates: [{ type: String }],   // Cloudinary URLs to PDFs
+      badges: [{ type: String }],          // Badge type identifiers
     },
-    avatar: {
-      type: String, // Cloudinary URL
+    department: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Department',
     },
+    // Identity Verification
+    identityVerified: { type: Boolean, default: false },
+    verificationStatus: { type: String, enum: ['unverified', 'pending', 'verified', 'failed'], default: 'unverified' },
+    verificationProvider: { type: String, default: null },
+    verificationReference: { type: String, default: null },
+    verifiedAt: { type: Date, default: null },
+    
+    // Trust Score & Reputation
+    trustScore: { type: Number, default: 100, min: 0, max: 100 },
+    totalReports: { type: Number, default: 0 },
+    verifiedReports: { type: Number, default: 0 },
+    resolvedReports: { type: Number, default: 0 },
+    rejectedReports: { type: Number, default: 0 },
+    duplicateReports: { type: Number, default: 0 },
+    abuseFlags: { type: Number, default: 0 },
   },
-  {
-    timestamps: true, // Adds createdAt, updatedAt
-  }
+  { timestamps: true }
 );
 
-// Index for role-based queries
 userSchema.index({ role: 1 });
 
-// Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(12);
@@ -52,9 +69,20 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// Compare entered password with hashed password
-userSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+userSchema.methods.comparePassword = async function (entered) {
+  return bcrypt.compare(entered, this.password);
 };
+
+// Virtual: count of resolved issues submitted by this citizen
+userSchema.virtual('totalResolved', {
+  ref: 'Issue',
+  localField: '_id',
+  foreignField: 'submittedBy',
+  count: true,
+  match: { status: 'Resolved' },
+});
+
+userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('User', userSchema);

@@ -95,6 +95,7 @@ export default function IssueDetailPage() {
   const deleteMut = useMutation({
     mutationFn: () => API.delete(`/issues/${id}`),
     onSuccess: () => { toast.success('Issue deleted'); navigate('/dashboard'); },
+    onError: (err) => { toast.error(err.response?.data?.message || 'Failed to delete issue'); },
   });
 
   /* ── loading ── */
