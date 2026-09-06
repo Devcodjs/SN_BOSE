@@ -28,7 +28,7 @@ export default function PriorityQueue() {
   return (
     <div className="space-y-6">
       {/* Header and Filters */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-7 rounded-xl border border-gray-200 shadow-sm">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <TrendingUp size={22} className="text-primary-600" />
@@ -39,16 +39,15 @@ export default function PriorityQueue() {
           </p>
         </div>
 
-        <div className="flex bg-gray-100 p-1 rounded-lg">
+        <div className="flex gap-[18px] bg-gray-100 p-1 rounded-lg">
           {['all', 'critical', 'high', 'medium', 'low'].map((f) => (
             <button
               key={f}
               onClick={() => { setFilter(f); setPage(1); }}
-              className={`px-4 py-1.5 text-sm font-semibold rounded-md capitalize transition-all ${
-                filter === f 
-                  ? 'bg-white text-gray-900 shadow-sm' 
+              className={`px-4 py-1.5 text-sm font-semibold rounded-md capitalize transition-all ${filter === f
+                  ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               {f}
             </button>

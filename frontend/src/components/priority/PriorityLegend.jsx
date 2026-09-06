@@ -2,11 +2,11 @@ import { PRIORITY_LEVELS } from '../../config/priorityConfig';
 
 export default function PriorityLegend() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-[11px]">
       {Object.values(PRIORITY_LEVELS).map((level) => (
         <div 
           key={level.label}
-          className="flex flex-col gap-1 p-3 rounded-lg border"
+          className="flex flex-col gap-1 p-4 rounded-lg border"
           style={{
             backgroundColor: level.background,
             borderColor: level.border,

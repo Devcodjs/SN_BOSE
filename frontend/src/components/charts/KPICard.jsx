@@ -12,7 +12,7 @@ export default function KPICard({ icon, value, label, trend, color = 'bg-primary
       <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-sm border border-sky-50 ${color}`}>
         {icon}
       </div>
-      <p className="text-4xl font-black text-slate-800 tracking-tight mb-3">{value}</p>
+      <p className="text-4xl font-bold text-slate-800 mb-3">{value}</p>
       
       <div className="flex flex-col items-center gap-2 mt-2 w-full">
         <p className="text-base text-slate-500 font-bold tracking-wide uppercase">{label}</p>

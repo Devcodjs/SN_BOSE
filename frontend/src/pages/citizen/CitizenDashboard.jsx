@@ -14,19 +14,19 @@ import { Plus, Filter, ClipboardList, ChevronLeft, ChevronRight, Users } from 'l
 
 /* ─────────────── Status colour map ─────────────── */
 const STATUS_META = {
-  '':            { color: '#2563eb', bg: '#eff6ff',  border: '#bfdbfe' },
-  'Pending':     { color: '#ca8a04', bg: '#fefce8',  border: '#fef08a' },
-  'In Progress': { color: '#2563eb', bg: '#eff6ff',  border: '#bfdbfe' },
-  'Resolved':    { color: '#16a34a', bg: '#f0fdf4',  border: '#bbf7d0' },
-  'Rejected':    { color: '#dc2626', bg: '#fef2f2',  border: '#fecaca' },
+  '': { color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+  'Pending': { color: '#ca8a04', bg: '#fefce8', border: '#fef08a' },
+  'In Progress': { color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+  'Resolved': { color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
+  'Rejected': { color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
 };
 
 const filters = [
   { label: 'All Reports', value: '' },
-  { label: 'Pending',     value: 'Pending' },
+  { label: 'Pending', value: 'Pending' },
   { label: 'In Progress', value: 'In Progress' },
-  { label: 'Resolved',    value: 'Resolved' },
-  { label: 'Rejected',    value: 'Rejected' },
+  { label: 'Resolved', value: 'Resolved' },
+  { label: 'Rejected', value: 'Rejected' },
 ];
 
 /* ─────────────── Tiny reusable stat pill ─────────────── */
@@ -52,7 +52,7 @@ function StatPill({ label, value, color }) {
 export default function CitizenDashboard() {
   const { user } = useAuth();
   const [status, setStatus] = useState('');
-  const [page, setPage]     = useState(1);
+  const [page, setPage] = useState(1);
 
   const { data: resp, isLoading } = useQuery({
     queryKey: ['my-issues', status, page],
@@ -64,9 +64,9 @@ export default function CitizenDashboard() {
     },
   });
 
-  const issues     = resp?.data       || [];
+  const issues = resp?.data || [];
   const pagination = resp?.pagination;
-  const stats      = resp?.stats      || {};   // optional – pass from API if available
+  const stats = resp?.stats || {};   // optional – pass from API if available
 
   return (
     <PageWrapper style={{
@@ -111,20 +111,10 @@ export default function CitizenDashboard() {
           }}>
             {/* Avatar + online dot */}
             <div style={{ position: 'relative', display: 'inline-block' }}>
+              <Avatar name={user?.name || ''} size="2xl" shape="rounded-full" ring />
               <div style={{
-                width: '88px', height: '88px', borderRadius: '50%',
-                background: 'linear-gradient(135deg, #2563eb, #60a5fa)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '32px', fontWeight: 800, color: '#fff',
-                border: '4px solid #fff',
-                boxShadow: '0 0 0 3px #bfdbfe',
-              }}>
-                <Avatar name={user?.name || ''} size="2xl" />
-              </div>
-              {/* Online indicator */}
-              <div style={{
-                position: 'absolute', bottom: '4px', right: '4px',
-                width: '18px', height: '18px', borderRadius: '50%',
+                position: 'absolute', bottom: '2px', right: '2px',
+                width: '20px', height: '20px', borderRadius: '50%',
                 background: '#22c55e', border: '3px solid #fff',
               }} />
             </div>
@@ -150,10 +140,10 @@ export default function CitizenDashboard() {
             {(stats.total !== undefined) && (
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <StatPill label="Trust Score" value={user?.trustScore ?? 100} color="#2563eb" />
-                <StatPill label="Total"       value={stats.total     ?? 0} color="#0f172a" />
-                <StatPill label="Pending"     value={stats.pending   ?? 0} color="#ca8a04" />
-                <StatPill label="In Progress" value={stats.inProgress?? 0} color="#2563eb" />
-                <StatPill label="Resolved"    value={stats.resolved  ?? 0} color="#16a34a" />
+                <StatPill label="Total" value={stats.total ?? 0} color="#0f172a" />
+                <StatPill label="Pending" value={stats.pending ?? 0} color="#ca8a04" />
+                <StatPill label="In Progress" value={stats.inProgress ?? 0} color="#2563eb" />
+                <StatPill label="Resolved" value={stats.resolved ?? 0} color="#16a34a" />
               </div>
             )}
 
@@ -214,7 +204,7 @@ export default function CitizenDashboard() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', flex: 1 }}>
             {filters.map(f => {
               const active = status === f.value;
-              const meta   = STATUS_META[f.value] || STATUS_META[''];
+              const meta = STATUS_META[f.value] || STATUS_META[''];
               return (
                 <button
                   key={f.value}
