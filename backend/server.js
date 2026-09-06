@@ -48,6 +48,20 @@ app.use('/api/rewards', rewardRoutes);
 app.use('/api/identity', identityRoutes);
 app.use('/api/admin/abuse', abuseRoutes);
 
+// ── Serve the built React app in production ──
+// Without this, deploying this server as the single production service
+// (which local-disk certificate storage in /public implies) serves ONLY
+// the API — visiting the site itself 404s, and client-side routes like
+// /dashboard return nothing on a hard refresh. This must come after the
+// /api routes and before the 404 handler.
+if (process.env.NODE_ENV === 'production') {
+  const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+  app.use(express.static(frontendDist));
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
+
 app.use((req, res) => {
   res.status(404).json({ success: false, message: `Route ${req.method} ${req.originalUrl} not found` });
 });

@@ -100,6 +100,7 @@ export default function AdminDashboard() {
       setModal(null);
       qc.invalidateQueries({ queryKey: ['admin-issues'] });
       qc.invalidateQueries({ queryKey: ['admin-stats'] });
+      qc.invalidateQueries({ queryKey: ['adminIssues'] });
     },
   });
 
@@ -111,6 +112,12 @@ export default function AdminDashboard() {
       setModal(null);
       qc.invalidateQueries({ queryKey: ['admin-issues'] });
       qc.invalidateQueries({ queryKey: ['admin-stats'] });
+      // The Priority Queue and its duplicate-count banner live under a
+      // different key namespace ('adminIssues' vs 'admin-issues') — without
+      // this, resolving an issue here (which now also cascades to its
+      // linked duplicates, see updateIssueStatus) wouldn't be reflected
+      // there until the 60s cache window happened to expire.
+      qc.invalidateQueries({ queryKey: ['adminIssues'] });
     },
   });
 
@@ -256,7 +263,7 @@ export default function AdminDashboard() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            {activeTab === 'queue' && <PriorityQueue />}
+            {activeTab === 'queue' && <PriorityQueue onViewAllIssues={() => setActiveTab('overview')} />}
 
             {activeTab === 'abuse' && <AbuseManagement />}
 
@@ -326,6 +333,20 @@ export default function AdminDashboard() {
                     {isLoading ? (
                       <div style={{ padding: '8px 0' }}>
                         {[...Array(5)].map((_, i) => <SkeletonRow key={i} />)}
+                      </div>
+                    ) : isError ? (
+                      // Previously a failed request (e.g. a server error) fell through
+                      // to the exact same "No issues found" empty state as a genuinely
+                      // empty result — indistinguishable to anyone looking at the screen,
+                      // and the real cause was only ever visible in the browser console.
+                      <div style={{ padding: '64px 24px', textAlign: 'center' }}>
+                        <p style={{ fontSize: '28px', marginBottom: '10px' }}>⚠️</p>
+                        <p style={{ fontSize: '14px', color: '#b91c1c', fontWeight: 600, marginBottom: '4px' }}>
+                          Couldn't load issues
+                        </p>
+                        <p style={{ fontSize: '13px', color: '#94a3b8' }}>
+                          {error?.response?.data?.message || error?.message || 'Something went wrong contacting the server.'}
+                        </p>
                       </div>
                     ) : issues.length === 0 ? (
                       <div style={{ padding: '64px 24px', textAlign: 'center' }}>

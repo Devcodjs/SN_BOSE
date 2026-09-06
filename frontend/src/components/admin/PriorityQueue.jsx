@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import API from '../../services/api';
 import IssueCard from '../issues/IssueCard';
 import { SkeletonCard } from '../ui/Skeleton';
-import { AlertTriangle, TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, CheckCircle2 } from 'lucide-react';
 import PriorityLegend from '../priority/PriorityLegend';
 
 export default function PriorityQueue() {

@@ -84,6 +84,24 @@ input::placeholder, textarea::placeholder {
 /* ── Leaflet fix ── */
 .leaflet-container { z-index: 1; }
 
+/* ── Keyboard accessibility ──
+   Buttons, links, and native selects across the app have no visible
+   focus state (only a handful of custom inputs simulate one via
+   onFocus/onBlur handlers). That means keyboard-only users tabbing
+   through the app can't see where focus is. :focus-visible only shows
+   this ring for keyboard/programmatic focus, not mouse clicks, so it
+   doesn't fight the existing hover/active styling. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

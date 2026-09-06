@@ -83,21 +83,44 @@ const getIssue = asyncHandler(async (req, res) => {
 });
 
 // POST /api/issues
+/**
+ * multer-storage-cloudinary uploads files to Cloudinary BEFORE this controller
+ * ever runs. If we reject the request afterwards (bad auth, validation,
+ * abuse block) the images are already sitting in Cloudinary with nothing
+ * pointing at them. Call this on every early-return path once req.files
+ * is populated so we don't leak storage/quota on every rejected submission.
+ */
+const cleanupUploadedFiles = async (req) => {
+  if (req.files && req.files.length > 0) {
+    await Promise.all(
+      req.files.map(f => cloudinary.uploader.destroy(f.filename).catch(() => {}))
+    );
+  }
+};
+
 const createIssue = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (!user.identityVerified) {
+    await cleanupUploadedFiles(req);
     return sendError(res, 'Identity verification is required to report an issue', 403);
   }
 
   // 2. Validate input
   const errors = validateIssue(req.body);
-  if (errors.length > 0) return sendError(res, errors[0], 400);
+  if (errors.length > 0) {
+    await cleanupUploadedFiles(req);
+    return sendError(res, errors[0], 400);
+  }
 
-  const { title, description, category, priority, severity, address, latitude, longitude } = req.body;
-  if (!latitude || !longitude) return sendError(res, 'Location coordinates are required', 400);
+  const { title, description, category, severity, address, latitude, longitude } = req.body;
+  if (!latitude || !longitude) {
+    await cleanupUploadedFiles(req);
+    return sendError(res, 'Location coordinates are required', 400);
+  }
 
   const coords = [parseFloat(longitude), parseFloat(latitude)];
   if (isNaN(coords[0]) || isNaN(coords[1])) {
+    await cleanupUploadedFiles(req);
     return sendError(res, 'Invalid coordinates format', 400);
   }
 
@@ -108,6 +131,7 @@ const createIssue = asyncHandler(async (req, res) => {
   };
   const isAbusive = await abuseService.analyzeSubmission(req.user._id, issueData);
   if (isAbusive) {
+    await cleanupUploadedFiles(req);
     return sendError(res, 'Submission blocked due to suspected abuse. Your account has been flagged for review.', 403);
   }
 
@@ -123,7 +147,7 @@ const createIssue = asyncHandler(async (req, res) => {
 
   // 5. Duplicate Detection
   const dupCheck = await duplicateService.findDuplicates(issueData);
-  
+
   // 6. Build the Issue object
   const newIssue = new Issue({
     title,
@@ -145,12 +169,12 @@ const createIssue = asyncHandler(async (req, res) => {
   // 8. Handle Duplicate Linkage
   if (dupCheck.isDuplicate) {
     const masterIssue = dupCheck.topMatch.issue;
-    
+
     newIssue.isDuplicate = true;
     newIssue.duplicateOf = masterIssue._id;
     newIssue.duplicateScore = dupCheck.topMatch.score;
     newIssue.duplicateStatus = 'confirmed';
-    
+
     // Add to master issue's supporting reports
     await Issue.findByIdAndUpdate(masterIssue._id, {
       $push: { supportingReports: newIssue._id },
@@ -185,19 +209,29 @@ const createIssue = asyncHandler(async (req, res) => {
 // PUT /api/issues/:id
 const updateIssue = asyncHandler(async (req, res) => {
   const issue = await Issue.findById(req.params.id);
-  if (!issue) return sendError(res, 'Issue not found', 404);
+  if (!issue) {
+    await cleanupUploadedFiles(req);
+    return sendError(res, 'Issue not found', 404);
+  }
   if (issue.submittedBy.toString() !== req.user._id.toString()) {
+    await cleanupUploadedFiles(req);
     return sendError(res, 'Not authorized', 403);
   }
   if (issue.status !== 'Pending') {
+    await cleanupUploadedFiles(req);
     return sendError(res, 'Cannot edit issue that is already being processed', 400);
   }
 
-  const { title, description, category, priority, address, latitude, longitude } = req.body;
+  // NOTE: `priority` is intentionally NOT accepted from the client here.
+  // It is a derived value owned by priorityService (severity + corroboration +
+  // upvotes + age). Letting a citizen set it directly let priority and
+  // priorityScore drift out of sync. Citizens can influence it by updating
+  // `severity`, and we recompute the score below.
+  const { title, description, category, severity, address, latitude, longitude } = req.body;
   if (title) issue.title = title;
   if (description) issue.description = description;
   if (category) issue.category = category;
-  if (priority) issue.priority = priority;
+  if (severity) issue.severity = severity;
   if (address) issue.location.address = address;
   if (latitude && longitude) {
     issue.location.coordinates = [parseFloat(longitude), parseFloat(latitude)];
@@ -208,6 +242,13 @@ const updateIssue = asyncHandler(async (req, res) => {
     }
     issue.images = req.files.map(f => f.path);
     issue.imagePublicIds = req.files.map(f => f.filename);
+  }
+
+  if (severity) {
+    const priorityResult = priorityService.calculatePriorityScore(issue);
+    issue.priorityScore = priorityResult.score;
+    issue.priority = getPriorityLabel(priorityResult.score);
+    issue.lastPriorityCalculation = new Date();
   }
 
   await issue.save();

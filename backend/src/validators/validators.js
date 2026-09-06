@@ -50,8 +50,13 @@ const validateIssue = (body) => {
 
   if (!title || title.trim().length === 0) {
     errors.push('Title is required');
-  } else if (title.trim().length > 200) {
-    errors.push('Title cannot exceed 200 characters');
+  } else if (title.trim().length > 100) {
+    // Must match Issue schema's `title.maxlength` (100) and the frontend's
+    // maxLength on the title input. Previously this said 200, so a
+    // 101-200 char title would pass here, upload images to Cloudinary,
+    // and only then fail at issue.save() with a confusing 500-ish error —
+    // leaving orphaned images behind.
+    errors.push('Title cannot exceed 100 characters');
   }
 
   if (!description || description.trim().length === 0) {
