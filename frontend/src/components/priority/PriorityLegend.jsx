@@ -2,27 +2,52 @@ import { PRIORITY_LEVELS } from '../../config/priorityConfig';
 
 export default function PriorityLegend() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    // gap-3 → gap-4: the four cards were touching almost edge-to-edge at
+    // narrower widths; a full 16px gutter gives each one clear separation.
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {Object.values(PRIORITY_LEVELS).map((level) => (
-        <div 
+        <div
           key={level.label}
-          className="flex flex-col gap-1 p-3 rounded-lg border"
+          className="flex flex-col h-full gap-3 p-4 rounded-xl border shadow-sm transition-shadow duration-150 hover:shadow-[0_4px_14px_-4px_rgba(0,0,0,0.12)]"
           style={{
             backgroundColor: level.background,
             borderColor: level.border,
           }}
         >
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm">{level.icon}</span>
-            <span className="text-xs font-bold tracking-wide" style={{ color: level.textColor }}>
+          {/* Label row */}
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{
+                backgroundColor: level.color,
+                boxShadow: `0 0 0 3px ${level.color}20`,
+              }}
+            />
+            <span
+              className="text-xs font-bold tracking-wide"
+              style={{ color: level.textColor }}
+            >
               {level.label}
             </span>
           </div>
-          <p className="text-[10px] leading-tight opacity-90 mt-1 font-medium" style={{ color: level.textColor }}>
+
+          {/* Description — flex-1 so every card's divider lines up at the
+              bottom regardless of how many lines the description wraps to */}
+          <p
+            className="text-[11px] leading-relaxed font-medium flex-1"
+            style={{ color: level.textColor, opacity: 0.82 }}
+          >
             {level.description}
           </p>
-          <div className="text-[10px] font-mono mt-auto pt-2 opacity-70" style={{ color: level.textColor }}>
-            Score: {level.min}-{level.max}
+
+          {/* Score range, separated by a real divider rather than just
+              spacing, so it reads as a distinct data point */}
+          <div
+            className="flex items-baseline justify-between text-[10px] font-mono font-semibold tabular-nums pt-2.5 border-t"
+            style={{ color: level.textColor, opacity: 0.75, borderColor: level.border }}
+          >
+            <span className="tracking-wide" style={{ opacity: 0.75 }}>SCORE</span>
+            <span>{level.min}–{level.max}</span>
           </div>
         </div>
       ))}

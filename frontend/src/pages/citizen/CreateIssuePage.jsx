@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import toast from 'react-hot-toast';
@@ -22,7 +23,14 @@ const categories = [
   { name: 'Sanitation',  icon: '🧹' },
   { name: 'Other',       icon: '📋' },
 ];
-const priorities = ['Low', 'Medium', 'High', 'Critical'];
+// NOTE: this is submitted to the backend as `severity` — the citizen's
+// own read on how bad the issue is. The backend then combines severity
+// with corroboration, upvotes and age to compute the *actual* `priority`
+// (see priorityService.js). Previously this list/state was called
+// "priority" and sent to the API as `priority`, a field the backend
+// silently ignores on create — so every issue was scored with the
+// default severity ('Medium'), no matter what the reporter picked.
+const severities = ['Low', 'Medium', 'High', 'Critical'];
 
 const PRIORITY_META = {
   Low:      { color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
@@ -149,10 +157,12 @@ const S = {
     margin: '2rem 0',
   },
 
-  /* Category grid */
+  /* Category grid — auto-fit instead of a hard 3 columns so it reflows
+     to 2 columns on narrow phones (<~340px) instead of squeezing icons
+     and labels into unreadably tight cells. */
   catGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))',
     gap: '14px',
   },
 
@@ -222,11 +232,12 @@ function StyledTextarea({ style, ...props }) {
 /* ─────────────── Main Page ─────────────── */
 export default function CreateIssuePage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [previews, setPreviews] = useState([]);
   const [form, setForm] = useState({
-    title: '', description: '', category: '', priority: 'Medium',
+    title: '', description: '', category: '', severity: 'Medium',
     address: '', latitude: '', longitude: '', files: [],
   });
 
@@ -262,7 +273,7 @@ export default function CreateIssuePage() {
       data.append('title', form.title);
       data.append('description', form.description);
       data.append('category', form.category);
-      data.append('priority', form.priority);
+      data.append('severity', form.severity);
       data.append('address', form.address);
       data.append('latitude', form.latitude);
       data.append('longitude', form.longitude);
@@ -294,7 +305,7 @@ export default function CreateIssuePage() {
     { n: 3, icon: <ImagePlus size={17} />, label: 'Media' },
   ];
 
-  const priorityMeta = PRIORITY_META[form.priority] || PRIORITY_META.Medium;
+  const priorityMeta = PRIORITY_META[form.severity] || PRIORITY_META.Medium;
 
   return (
     <PageWrapper style={S.page}>
@@ -445,12 +456,12 @@ export default function CreateIssuePage() {
                 exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.22 }}
                 style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}
               >
-                {/* Priority */}
+                {/* Severity */}
                 <SectionBlock>
-                  <label style={S.label}>Urgency / Priority</label>
+                  <label style={S.label}>How severe is this?</label>
                   <div style={{ position: 'relative' }}>
                     <select
-                      name="priority" value={form.priority} onChange={handleChange}
+                      name="severity" value={form.severity} onChange={handleChange}
                       style={{
                         ...S.input,
                         appearance: 'none',
@@ -463,7 +474,7 @@ export default function CreateIssuePage() {
                         border: `1.5px solid ${priorityMeta.border}`,
                       }}
                     >
-                      {priorities.map(p => <option key={p} value={p}>{p} Priority</option>)}
+                      {severities.map(s => <option key={s} value={s}>{s} severity</option>)}
                     </select>
                     <div style={{
                       pointerEvents: 'none', position: 'absolute',
@@ -475,7 +486,9 @@ export default function CreateIssuePage() {
                     </div>
                   </div>
                   <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '8px', fontWeight: 500 }}>
-                    Select how urgently this needs attention from local authorities.
+                    This is your own read on how bad it is. The system combines it with
+                    how many others report the same issue, upvotes, and age to set the
+                    final priority — so it may change after you submit.
                   </p>
                 </SectionBlock>
 
@@ -605,7 +618,7 @@ export default function CreateIssuePage() {
                     {[
                       { key: 'Category',    val: form.category    || '—' },
                       { key: 'Title',       val: form.title       || '—' },
-                      { key: 'Priority',    val: form.priority    || 'Medium' },
+                      { key: 'Severity',    val: form.severity    || 'Medium' },
                       { key: 'Address',     val: form.address     || 'Not provided' },
                       { key: 'Photos',      val: `${previews.length} attached` },
                     ].map(row => (

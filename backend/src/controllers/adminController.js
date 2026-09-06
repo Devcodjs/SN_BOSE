@@ -34,7 +34,11 @@ const getAllIssues = asyncHandler(async (req, res) => {
       .populate('submittedBy', 'name email phone')
       .populate('assignedTo', 'name email')
       .populate('department', 'name')
-      .populate('originalIssue', 'title')
+      // Was `.populate('originalIssue', ...)` — that field doesn't exist on
+      // the schema (the real field is `duplicateOf`), so Mongoose's
+      // strictPopulate threw on every single call to this endpoint,
+      // meaning the "All Issues" admin tab has been 500ing since day one.
+      .populate('duplicateOf', 'title')
       .sort(sort).skip((page - 1) * limit).limit(limit).lean(),
     Issue.countDocuments(filter),
   ]);
@@ -98,6 +102,33 @@ const updateIssueStatus = asyncHandler(async (req, res) => {
     issue.resolvedAt = undefined;
   }
   await issue.save();
+
+  // Cascade the same status to any reports that were auto-linked to this
+  // one as duplicates (duplicateDetectionService links them, but nothing
+  // was closing them out afterwards — so a resolved/rejected master left
+  // every duplicate report sitting as "Pending" forever, permanently
+  // inflating the Pending count even though the underlying problem was
+  // already handled).
+  if ((status === 'Resolved' || status === 'Rejected') && issue.supportingReports?.length > 0) {
+    await Issue.updateMany(
+      { _id: { $in: issue.supportingReports } },
+      {
+        $set: {
+          status,
+          ...(status === 'Resolved' ? { resolvedAt: new Date() } : { resolvedAt: undefined }),
+        },
+      }
+    );
+    await IssueUpdate.insertMany(
+      issue.supportingReports.map(dupId => ({
+        issue: dupId,
+        updatedBy: req.user._id,
+        fromStatus: 'Pending',
+        toStatus: status,
+        comment: `Auto-${status.toLowerCase()} — linked as a duplicate of "${issue.title}"`,
+      }))
+    );
+  }
 
   const proofImage = (req.files && req.files[0]?.path) || (req.file?.path) || undefined;
   await IssueUpdate.create({
