@@ -46,103 +46,6 @@ function FeatCard({ title, desc, icon }) {
   );
 }
 
-const categories = [
-  { label: 'Roads & Potholes', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19l4-14h2l-1 5h6l-1-5h2l4 14"/><path d="M9 15h6"/></svg> },
-  { label: 'Flooding & Drainage', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h2c1 2 2 2 3 0s2-2 3 0 2 2 3 0 2-2 3 0 2 2 3 0h2"/><path d="M2 18h2c1 2 2 2 3 0s2-2 3 0 2 2 3 0 2-2 3 0 2 2 3 0h2"/><path d="M12 2v9"/></svg> },
-  { label: 'Water Supply', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg> },
-  { label: 'Garbage', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg> },
-  { label: 'Electricity', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> },
-  { label: 'Sanitation', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> },
-];
-
-function CategoryChip({ label, icon }) {
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: '7px',
-      background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)',
-      backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-      color: 'rgba(255,255,255,0.92)', fontSize: '13px', fontWeight: 600,
-      padding: '9px 16px', borderRadius: '99px', whiteSpace: 'nowrap',
-      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
-    }}>
-      {icon}{label}
-    </span>
-  );
-}
-
-function IssuePreviewCard() {
-  return (
-    <div style={{
-      background: '#fff', borderRadius: '22px', padding: '22px',
-      boxShadow: '0 35px 70px -20px rgba(2,6,23,0.55), 0 15px 35px -10px rgba(37,99,235,0.35), 0 0 0 1px rgba(255,255,255,0.06)',
-      width: '100%', maxWidth: '360px', position: 'relative',
-    }}>
-      {/* Photo area */}
-      <div style={{
-        height: '160px', borderRadius: '16px', marginBottom: '18px',
-        background: 'linear-gradient(135deg, #1e3a8a 0%, #0369a1 45%, #0891b2 100%)',
-        position: 'relative', overflow: 'hidden',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5">
-          <path d="M2 12h2c1 2 2 2 3 0s2-2 3 0 2 2 3 0 2-2 3 0 2 2 3 0h2" />
-          <path d="M2 17h2c1 2 2 2 3 0s2-2 3 0 2 2 3 0 2-2 3 0 2 2 3 0h2" />
-          <path d="M12 2v9" />
-        </svg>
-        <span style={{
-          position: 'absolute', top: '12px', left: '12px',
-          background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(6px)',
-          color: '#fff', fontSize: '11px', fontWeight: 700,
-          padding: '5px 10px', borderRadius: '99px', letterSpacing: '0.03em',
-        }}>
-          Flooding & Drainage
-        </span>
-        <span style={{
-          position: 'absolute', top: '12px', right: '12px',
-          background: '#dc2626', color: '#fff', fontSize: '10px', fontWeight: 800,
-          padding: '5px 10px', borderRadius: '99px', letterSpacing: '0.04em', textTransform: 'uppercase',
-        }}>
-          High priority
-        </span>
-      </div>
-
-      <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', marginBottom: '6px', lineHeight: 1.4 }}>
-        Waterlogged road after heavy rain — MG Road junction
-      </h4>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12.5px', marginBottom: '18px' }}>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        Reported 2 hours ago
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: '6px',
-          background: '#eff6ff', color: '#2563eb', fontSize: '12px', fontWeight: 700,
-          padding: '6px 12px', borderRadius: '99px',
-        }}>
-          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#2563eb' }} />
-          In Progress
-        </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#94a3b8', fontSize: '12.5px', fontWeight: 600 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"/></svg>
-          47
-        </span>
-      </div>
-
-      {/* Floating notification badge */}
-      <div style={{
-        position: 'absolute', bottom: '-16px', right: '-16px',
-        background: '#16a34a', color: '#fff', borderRadius: '16px',
-        padding: '10px 16px', boxShadow: '0 12px 24px -6px rgba(22,163,74,0.5)',
-        fontSize: '12.5px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '7px',
-      }}>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-        Resolved in 3 days
-      </div>
-    </div>
-  );
-}
-
 const steps = [
   {
     num: 'Step 01', title: 'Report issue', desc: "Snap a photo, drop a pin on the map, and write a brief description. We route it automatically.",
@@ -179,82 +82,63 @@ export default function LandingPage() {
   return (
     <div style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
 
-      {/* HERO (Layered Mesh Gradient — Navy / Indigo / Cyan) */}
-      <section style={{
-        background: 'radial-gradient(ellipse 90% 70% at 15% 0%, #1e3a8a 0%, transparent 55%), radial-gradient(ellipse 80% 60% at 100% 15%, #0e7490 0%, transparent 50%), linear-gradient(160deg, #0b1220 0%, #101c3a 45%, #14204a 100%)',
-        padding: '90px 24px 100px', position: 'relative', overflow: 'hidden',
-      }}>
-        {/* Subtle grid texture */}
-        <div style={{
-          position: 'absolute', inset: 0, opacity: 0.35, pointerEvents: 'none',
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px)',
-          backgroundSize: '56px 56px',
-          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 20%, black 20%, transparent 75%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 20%, black 20%, transparent 75%)',
-        }} />
+      {/* HERO (Deep Navy to Royal Blue Gradient) */}
+      <section style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%)', padding: '100px 24px 120px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        {/* Decorative Background Elements */}
+        <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '400px', height: '400px', background: 'rgba(255,255,255,0.03)', borderRadius: '50%', filter: 'blur(40px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '300px', height: '300px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '50%', filter: 'blur(40px)', pointerEvents: 'none' }} />
 
-        {/* Decorative glow orbs */}
-        <div style={{ position: 'absolute', top: '-14%', left: '-6%', width: '440px', height: '440px', background: 'radial-gradient(circle, rgba(96,165,250,0.22) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(30px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '-16%', right: '-8%', width: '380px', height: '380px', background: 'radial-gradient(circle, rgba(34,211,238,0.18) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(30px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: '30%', right: '18%', width: '220px', height: '220px', background: 'radial-gradient(circle, rgba(129,140,248,0.16) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(30px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', borderRadius: '99px', padding: '8px 20px', fontSize: '13px', fontWeight: 600, color: '#fff', marginBottom: '40px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
+            Built for Indian Citizens
+          </div>
 
-        <div style={{
-          position: 'relative', zIndex: 1, maxWidth: '1180px', margin: '0 auto',
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
-          gap: '56px', alignItems: 'center',
-        }}>
+          <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 800, color: '#fff', lineHeight: 1.15, marginBottom: '24px', letterSpacing: '-0.02em' }}>
+            Your City. Your Voice.<br />
+            <span style={{ color: '#93c5fd' }}>Your CityZen.</span>
+          </h1>
 
-          {/* ── Left: copy ── */}
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', borderRadius: '99px', padding: '8px 20px', fontSize: '13px', fontWeight: 600, color: '#fff', marginBottom: '28px' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
-              Built for Indian Citizens
-            </div>
+          <p style={{ fontSize: 'clamp(1rem, 2vw, 1.125rem)', color: 'rgba(255,255,255,0.85)', maxWidth: '580px', margin: '0 auto 48px', lineHeight: 1.8 }}>
+            Report civic issues — roads, water, sanitation — with photo and GPS evidence. Track resolutions in real time and earn rewards for active citizenship.
+          </p>
 
-            <h1 style={{ fontSize: 'clamp(2.3rem, 4.8vw, 3.4rem)', fontWeight: 800, color: '#fff', lineHeight: 1.15, marginBottom: '22px', letterSpacing: '-0.02em' }}>
-              Potholes. Flooding.<br />
-              <span style={{ color: '#93c5fd' }}>Broken infrastructure.</span><br />
-              Reported and fixed.
-            </h1>
-
-            <p style={{ fontSize: 'clamp(1rem, 1.6vw, 1.1rem)', color: 'rgba(255,255,255,0.85)', maxWidth: '520px', marginBottom: '32px', lineHeight: 1.8 }}>
-              Snap a photo of a damaged road, a flooded street, or a broken drain — pin the exact location and send it straight to your municipality. Track the fix in real time.
-            </p>
-
-            {/* Category strip */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '36px' }}>
-              {categories.map((c, i) => <CategoryChip key={i} {...c} />)}
-            </div>
-
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              {isAuthenticated ? (
-                <Link to={isAdmin ? '/admin' : '/dashboard'} style={{ textDecoration: 'none' }}>
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '48px' }}>
+            {isAuthenticated ? (
+              <Link to={isAdmin ? '/admin' : '/dashboard'} style={{ textDecoration: 'none' }}>
+                <button style={{ background: '#fff', color: '#0f172a', border: 'none', borderRadius: '12px', padding: '16px 32px', fontSize: '16px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+                  Go to Dashboard
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/register" style={{ textDecoration: 'none' }}>
                   <button style={{ background: '#fff', color: '#0f172a', border: 'none', borderRadius: '12px', padding: '16px 32px', fontSize: '16px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                    Go to Dashboard
+                    Get started free
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                   </button>
                 </Link>
-              ) : (
-                <>
-                  <Link to="/register" style={{ textDecoration: 'none' }}>
-                    <button style={{ background: '#fff', color: '#0f172a', border: 'none', borderRadius: '12px', padding: '16px 32px', fontSize: '16px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                      Report an issue
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                    </button>
-                  </Link>
-                  <Link to="/login" style={{ textDecoration: 'none' }}>
-                    <button style={{ background: 'transparent', color: '#fff', border: '2px solid rgba(255,255,255,0.3)', borderRadius: '12px', padding: '14px 32px', fontSize: '16px', fontWeight: 600, cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
-                      Sign in
-                    </button>
-                  </Link>
-                </>
-              )}
-            </div>
+                <Link to="/login" style={{ textDecoration: 'none' }}>
+                  <button style={{ background: 'transparent', color: '#fff', border: '2px solid rgba(255,255,255,0.3)', borderRadius: '12px', padding: '14px 32px', fontSize: '16px', fontWeight: 600, cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                    Sign in
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
 
-          {/* ── Right: live issue preview mockup ── */}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <IssuePreviewCard />
+          {/* Micro-trust indicators */}
+          <div style={{ display: 'flex', gap: '32px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {[
+              { label: 'Secure issue reporting', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> },
+              { label: 'Pinpoint accuracy', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> },
+              { label: 'Cloud infrastructure', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg> }
+            ].map((t, i) => (
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>
+                {t.icon}{t.label}
+              </span>
+            ))}
           </div>
         </div>
       </section>
@@ -316,7 +200,7 @@ export default function LandingPage() {
       <section style={{ background: '#2563eb', padding: '100px 24px', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: 800, color: '#fff', marginBottom: '20px', letterSpacing: '-0.02em' }}>Ready to transform your neighborhood?</h2>
         <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.9)', maxWidth: '500px', margin: '0 auto 40px', lineHeight: 1.8 }}>
-          Join thousands of proactive citizens using CivicPulse. It takes less than 60 seconds to make your first report.
+          Join thousands of proactive citizens using CityZen. It takes less than 60 seconds to make your first report.
         </p>
         
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '40px' }}>
@@ -343,7 +227,7 @@ export default function LandingPage() {
             <a key={i} href="#" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', textDecoration: 'none', fontWeight: 500, transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = '#fff'} onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}>{l}</a>
           ))}
         </div>
-        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>© 2026 CivicPulse — Built with a commitment to a better tomorrow.</p>
+        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>© 2026 CityZen — Built with a commitment to a better tomorrow.</p>
       </footer>
 
     </div>

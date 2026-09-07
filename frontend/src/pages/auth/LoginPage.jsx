@@ -112,7 +112,7 @@ const s = {
   },
   left: {
     width: '42%',
-    background: '#0ea5e9',
+    background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #1d4ed8 100%)',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
@@ -551,7 +551,7 @@ export default function LoginPage() {
             {/* Header */}
             <div style={{ marginBottom: '1.25rem' }}>
               <p style={s.eyebrow}>Citizen Portal</p>
-              <h2 style={s.formH2}>Sign in to CivicPulse</h2>
+              <h2 style={s.formH2}>Sign in to CityZen</h2>
               <p style={s.formSub}>Choose your preferred sign in method below.</p>
             </div>
 
@@ -659,6 +659,23 @@ export default function LoginPage() {
             {/* ── MODE 2: AADHAAR AUTHENTICATION ── */}
             {authMode === 'aadhaar' && (
               <>
+                <div style={{
+                  background: '#f0f9ff',
+                  border: '1px solid #bae6fd',
+                  borderRadius: 10,
+                  padding: '10px 12px',
+                  fontSize: 12,
+                  color: '#0369a1',
+                  marginBottom: '1.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  lineHeight: 1.4,
+                }}>
+                  <span style={{ fontSize: 14 }}>ℹ️</span>
+                  <span>Demo Aadhaar OTP authentication is enabled in the development environment.</span>
+                </div>
+
                 {aadhaarStep === 1 ? (
                   /* Step 1: Input Aadhaar Number */
                   <form onSubmit={handleRequestOtp}>
