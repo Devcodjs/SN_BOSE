@@ -46,16 +46,18 @@ const validateIssue = (body) => {
   const errors = [];
   const { title, description, category } = body;
 
-  const validCategories = ['Roads', 'Garbage', 'Water', 'Electricity', 'Sanitation', 'Other'];
+  const validCategories = [
+    'Roads',
+    'Garbage',
+    'Water',
+    'Electricity',
+    'Sanitation',
+    'Other',
+  ];
 
   if (!title || title.trim().length === 0) {
     errors.push('Title is required');
   } else if (title.trim().length > 100) {
-    // Must match Issue schema's `title.maxlength` (100) and the frontend's
-    // maxLength on the title input. Previously this said 200, so a
-    // 101-200 char title would pass here, upload images to Cloudinary,
-    // and only then fail at issue.save() with a confusing 500-ish error —
-    // leaving orphaned images behind.
     errors.push('Title cannot exceed 100 characters');
   }
 
@@ -71,8 +73,8 @@ const validateIssue = (body) => {
     errors.push(`Category must be one of: ${validCategories.join(', ')}`);
   }
 
-  // Adding severity validation
   const validSeverities = ['Low', 'Medium', 'High', 'Critical'];
+
   if (body.severity && !validSeverities.includes(body.severity)) {
     errors.push(`Severity must be one of: ${validSeverities.join(', ')}`);
   }
@@ -84,7 +86,12 @@ const validateStatusUpdate = (body) => {
   const errors = [];
   const { status } = body;
 
-  const validStatuses = ['Pending', 'In Progress', 'Resolved', 'Rejected'];
+  const validStatuses = [
+    'Pending',
+    'In Progress',
+    'Resolved',
+    'Rejected',
+  ];
 
   if (!status) {
     errors.push('Status is required');
@@ -94,8 +101,6 @@ const validateStatusUpdate = (body) => {
 
   return errors;
 };
-
-const { validateVerhoeff } = require('../utils/verhoeff');
 
 const validateAadhaarRequest = (body) => {
   const errors = [];
@@ -107,12 +112,9 @@ const validateAadhaarRequest = (body) => {
   }
 
   const cleanNumber = aadhaarNumber.replace(/\s+/g, '');
+
   if (!/^\d{12}$/.test(cleanNumber)) {
     errors.push('Aadhaar number must consist of exactly 12 digits');
-  } else if (!/^[2-9]\d{11}$/.test(cleanNumber)) {
-    errors.push('Invalid Aadhaar number format');
-  } else if (!validateVerhoeff(cleanNumber)) {
-    errors.push('Invalid Aadhaar number checksum');
   }
 
   return errors;
@@ -122,7 +124,11 @@ const validateAadhaarVerify = (body) => {
   const errors = [];
   const { transactionId, otp } = body;
 
-  if (!transactionId || typeof transactionId !== 'string' || transactionId.trim().length === 0) {
+  if (
+    !transactionId ||
+    typeof transactionId !== 'string' ||
+    transactionId.trim().length === 0
+  ) {
     errors.push('Transaction ID is required');
   }
 
@@ -143,5 +149,3 @@ module.exports = {
   validateAadhaarRequest,
   validateAadhaarVerify,
 };
-
-

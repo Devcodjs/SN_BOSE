@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { validateVerhoeff } = require('../../utils/verhoeff');
+
 const { maskAadhaarNumber } = require('../../utils/aadhaarHash');
 
 /**
@@ -32,8 +32,8 @@ setInterval(cleanupExpiredTransactions, 60000).unref();
 const isValidAadhaarFormat = (aadhaarNumber) => {
   if (!aadhaarNumber || typeof aadhaarNumber !== 'string') return false;
   const clean = aadhaarNumber.replace(/\s+/g, '');
-  if (!/^[2-9]\d{11}$/.test(clean)) return false; // Indian Aadhaar numbers do not start with 0 or 1
-  return validateVerhoeff(clean);
+  return /^\d{12}$/.test(clean);
+  
 };
 
 const mockAadhaarProvider = {
@@ -53,7 +53,7 @@ const mockAadhaarProvider = {
 
     // Format and Verhoeff validation
     if (!isValidAadhaarFormat(cleanNumber)) {
-      const error = new Error('Invalid Aadhaar number format or checksum');
+      const error = new Error('Aadhaar number must consist of exactly 12 digits');
       error.statusCode = 400;
       throw error;
     }

@@ -41,6 +41,7 @@ const userSchema = new mongoose.Schema(
     department: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Department',
+    },
     aadhaarHash: {
       type: String,
       unique: true,
