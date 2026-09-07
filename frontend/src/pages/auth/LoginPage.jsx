@@ -258,7 +258,7 @@ export default function LoginPage() {
           <div style={{ position: 'relative', zIndex: 1 }}>
             {/* Brand */}
             <div style={s.brandIcon}><IconBuilding /></div>
-            <h1 style={s.brandH1}>CivicPulse</h1>
+            <h1 style={s.brandH1}>CityZen</h1>
             <p style={s.brandP}>
               Report civic issues, track resolutions, and earn rewards for making your city better.
             </p>

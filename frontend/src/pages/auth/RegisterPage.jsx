@@ -232,7 +232,7 @@ export default function RegisterPage() {
 
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div style={s.brandIcon}><IconBuilding /></div>
-            <h1 style={s.brandH1}>Join CivicPulse</h1>
+            <h1 style={s.brandH1}>Join CityZen</h1>
             <p style={s.brandP}>
               Create your account and start making a difference in your local community today.
             </p>
