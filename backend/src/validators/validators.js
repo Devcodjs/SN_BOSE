@@ -95,9 +95,53 @@ const validateStatusUpdate = (body) => {
   return errors;
 };
 
+const { validateVerhoeff } = require('../utils/verhoeff');
+
+const validateAadhaarRequest = (body) => {
+  const errors = [];
+  const { aadhaarNumber } = body;
+
+  if (!aadhaarNumber || typeof aadhaarNumber !== 'string') {
+    errors.push('Aadhaar number is required');
+    return errors;
+  }
+
+  const cleanNumber = aadhaarNumber.replace(/\s+/g, '');
+  if (!/^\d{12}$/.test(cleanNumber)) {
+    errors.push('Aadhaar number must consist of exactly 12 digits');
+  } else if (!/^[2-9]\d{11}$/.test(cleanNumber)) {
+    errors.push('Invalid Aadhaar number format');
+  } else if (!validateVerhoeff(cleanNumber)) {
+    errors.push('Invalid Aadhaar number checksum');
+  }
+
+  return errors;
+};
+
+const validateAadhaarVerify = (body) => {
+  const errors = [];
+  const { transactionId, otp } = body;
+
+  if (!transactionId || typeof transactionId !== 'string' || transactionId.trim().length === 0) {
+    errors.push('Transaction ID is required');
+  }
+
+  if (!otp || typeof otp !== 'string') {
+    errors.push('OTP is required');
+  } else if (!/^\d{6}$/.test(otp.trim())) {
+    errors.push('OTP must be a 6-digit number');
+  }
+
+  return errors;
+};
+
 module.exports = {
   validateRegister,
   validateLogin,
   validateIssue,
   validateStatusUpdate,
+  validateAadhaarRequest,
+  validateAadhaarVerify,
 };
+
+

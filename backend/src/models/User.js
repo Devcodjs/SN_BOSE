@@ -37,10 +37,17 @@ const userSchema = new mongoose.Schema(
       certificates: [{ type: String }],   // Cloudinary URLs to PDFs
       badges: [{ type: String }],          // Badge type identifiers
     },
+
     department: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Department',
+    aadhaarHash: {
+      type: String,
+      unique: true,
+      sparse: true,
+      select: false,
     },
+
     // Identity Verification
     identityVerified: { type: Boolean, default: false },
     verificationStatus: { type: String, enum: ['unverified', 'pending', 'verified', 'failed'], default: 'unverified' },
