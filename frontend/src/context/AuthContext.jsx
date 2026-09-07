@@ -26,14 +26,48 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const { data } = await API.post('/auth/login', { email, password });
-    setAccessToken(data.data.accessToken);
+    const token = data.data.token || data.data.accessToken;
+    setAccessToken(token);
     setUser(data.data.user);
     return data.data.user;
   };
 
   const register = async (name, email, password, phone) => {
     const { data } = await API.post('/auth/register', { name, email, password, phone });
-    setAccessToken(data.data.accessToken);
+    const token = data.data.token || data.data.accessToken;
+    setAccessToken(token);
+    setUser(data.data.user);
+    return data.data.user;
+  };
+
+  const requestAadhaarOtp = async (aadhaarNumber) => {
+    const { data } = await API.post('/auth/aadhaar/request-otp', { aadhaarNumber });
+    return data.data; // { transactionId, expiresAt }
+  };
+
+  const verifyAadhaarOtp = async (transactionId, otp) => {
+    const { data } = await API.post('/auth/aadhaar/verify-otp', { transactionId, otp });
+    if (data.data.requiresOnboarding) {
+      return data.data; // { requiresOnboarding: true, onboardingToken, maskedAadhaar }
+    }
+    const token = data.data.token || data.data.accessToken;
+    setAccessToken(token);
+    setUser(data.data.user);
+    return { user: data.data.user };
+  };
+
+  const completeAadhaarOnboarding = async (onboardingData) => {
+    const { data } = await API.post('/auth/aadhaar/complete-onboarding', onboardingData);
+    const token = data.data.token || data.data.accessToken;
+    setAccessToken(token);
+    setUser(data.data.user);
+    return data.data.user;
+  };
+
+  const linkAadhaarAccount = async (linkData) => {
+    const { data } = await API.post('/auth/aadhaar/link-account', linkData);
+    const token = data.data.token || data.data.accessToken;
+    setAccessToken(token);
     setUser(data.data.user);
     return data.data.user;
   };
@@ -47,6 +81,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, loading, login, register, logout,
+      requestAadhaarOtp, verifyAadhaarOtp, completeAadhaarOnboarding, linkAadhaarAccount,
       isAuthenticated: !!user,
       isAdmin: user?.role === 'admin',
       isMunicipality: user?.role === 'municipality',
