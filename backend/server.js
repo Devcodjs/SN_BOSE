@@ -37,7 +37,7 @@ if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 
 // ── Routes ──
 app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'CityZen 2 is running', timestamp: new Date().toISOString() });
+  res.json({ success: true, message: 'CityZen API v2 is running', timestamp: new Date().toISOString() });
 });
 
 app.use('/api/auth', authRoutes);
@@ -68,16 +68,19 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-// ── Start ──
+
+const aadhaarService = require('./src/services/aadhaarService');
+
 const PORT = process.env.PORT || 8000;
 
 const startServer = async () => {
   try {
     await connectDB();
     app.listen(PORT, () => {
-      console.log(`\n🚀 CityZen 2 running on port ${PORT}`);
+      console.log(`\n🚀 CityZen v2 running on port ${PORT}`);
       console.log(`📡 API: http://localhost:${PORT}/api`);
       console.log(`❤️  Health: http://localhost:${PORT}/api/health\n`);
+      aadhaarService.logProviderStatus();
     });
   } catch (error) {
     console.error('Failed to start server:', error);

@@ -442,7 +442,7 @@ export default function AnalyticsPage() {
           {/* ── Header ── */}
           <div className="ap-header">
             <div className="ap-eyebrow">📊 Dashboard</div>
-            <h1 className="ap-title">Civic Analytics</h1>
+            <h1 className="ap-title">CityZen Analytics</h1>
             <p className="ap-subtitle">Comprehensive insights across all reported civic issues</p>
           </div>
 
