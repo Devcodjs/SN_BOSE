@@ -35,7 +35,7 @@ export default function PriorityIssueCard({ issue, index = 0 }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.28, ease: 'easeOut' }}
       whileHover={{ y: -3 }}
-      className="group bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-lg hover:border-gray-300/80 transition-shadow duration-200 overflow-hidden flex flex-col"
+      className="group bg-white rounded-xl border border-gray-200/80 shadow-sm hover:shadow-lg hover:border-gray-300/80 transition-shadow duration-200 overflow-hidden flex flex-col"
     >
       <Link to={`/issues/${issue._id}`} className="flex flex-col flex-1 no-underline text-inherit">
         {/* Image */}
@@ -54,7 +54,7 @@ export default function PriorityIssueCard({ issue, index = 0 }) {
           </div>
         )}
 
-        <div className="flex flex-col gap-3 p-4 flex-1">
+        <div className="flex flex-col gap-3 flex-1" style={{ padding: '3mm' }}>
           {/* Severity + score — the most prominent row on the card */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
@@ -83,11 +83,17 @@ export default function PriorityIssueCard({ issue, index = 0 }) {
           </h3>
 
           {/* Category + status — small, subtle pills */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-md bg-gray-50 border border-gray-200 text-[11px] font-medium text-gray-600">
+          <div className="flex items-center gap-8 flex-wrap">
+            <span
+              className="inline-flex items-center gap-1.5 rounded-md bg-gray-50 border border-gray-200 text-[11px] font-medium text-gray-600"
+              style={{ padding: '2mm' }}
+            >
               {categoryIcon[issue.category] || '📋'} {issue.category}
             </span>
-            <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-md bg-gray-50 border border-gray-200 text-[11px] font-medium text-gray-600">
+            <span
+              className="inline-flex items-center gap-1.5 rounded-md bg-gray-50 border border-gray-200 text-[11px] font-medium text-gray-600"
+              style={{ padding: '2mm' }}
+            >
               <span
                 className="w-[6px] h-[6px] rounded-full shrink-0"
                 style={{ backgroundColor: statusColor[issue.status] || '#94a3b8' }}
@@ -113,8 +119,8 @@ export default function PriorityIssueCard({ issue, index = 0 }) {
             </div>
 
             {/* Reporter — compact, visually secondary */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-[9px] font-bold text-white shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-[18px] h-[18px] rounded-[6px] bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-[8px] font-bold text-white shrink-0">
                 {initials}
               </div>
               <span className="text-[11.5px] font-medium text-gray-500 truncate">

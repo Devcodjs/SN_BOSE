@@ -77,7 +77,10 @@ export default function PriorityQueue() {
   return (
     <div className="flex flex-col gap-5">
       {/* ── PAGE HEADER ── */}
-      <div className="bg-white rounded-xl border border-gray-200/80 px-6 py-5 flex items-start justify-between gap-4 flex-wrap">
+      <div
+        className="bg-white rounded-xl border border-gray-200/80 flex items-start justify-between gap-4 flex-wrap"
+        style={{ padding: '3mm' }}
+      >
         <div>
           <h2 className="text-[26px] font-bold text-gray-900 tracking-tight flex items-center gap-2">
             <TrendingUp size={22} className="text-primary-600" />
@@ -107,7 +110,7 @@ export default function PriorityQueue() {
             <button
               key={f.key}
               onClick={() => { setFilter(f.key); setPage(1); }}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap transition-colors border ${
+              className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-[9px] text-[13px] font-semibold whitespace-nowrap transition-colors border ${
                 active
                   ? 'bg-primary-600 border-primary-600 text-white'
                   : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
@@ -132,40 +135,40 @@ export default function PriorityQueue() {
       <PriorityLegend />
 
       {/* ── TOOLBAR ── */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             placeholder="Search issues..."
-            className="w-full pl-9 pr-3 py-2 text-[13px] rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 transition-shadow"
+            className="w-full pl-10 pr-3.5 py-2.5 text-[13px] rounded-[9px] border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 transition-shadow"
           />
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-[12px] text-gray-400 whitespace-nowrap">
+        <div className="flex items-center gap-4 flex-wrap">
+          <span className="text-[13px] text-gray-400 whitespace-nowrap">
             {pagination?.totalItems ?? 0} issues · Sorted by {SORT_OPTIONS.find(o => o.key === sortBy)?.label.toLowerCase()}
           </span>
           <div className="relative">
             <select
               value={sortBy}
               onChange={e => { setSortBy(e.target.value); setPage(1); }}
-              className="appearance-none pl-3 pr-8 py-2 text-[13px] font-medium rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500/30 cursor-pointer"
+              className="appearance-none pl-3.5 pr-9 py-2.5 text-[13px] font-medium rounded-[9px] border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500/30 cursor-pointer"
             >
               {SORT_OPTIONS.map(o => (
                 <option key={o.key} value={o.key}>Sort by: {o.label}</option>
               ))}
             </select>
-            <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <ChevronDown size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
         </div>
       </div>
 
       {/* ── GRID ── */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : issues.length === 0 ? (
@@ -178,7 +181,7 @@ export default function PriorityQueue() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {issues.map((issue, i) => (
               <PriorityIssueCard key={issue._id} issue={issue} index={i} />
             ))}

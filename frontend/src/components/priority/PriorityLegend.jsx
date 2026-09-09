@@ -12,14 +12,14 @@ import { PRIORITY_LEVELS } from '../../config/priorityConfig';
  */
 export default function PriorityLegend() {
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 bg-white px-5 py-3 rounded-xl border border-gray-200/80">
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 bg-white px-5 py-[14px] rounded-[12px] border border-gray-200/80">
       <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 shrink-0">
         Priority overview
       </span>
 
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         {Object.values(PRIORITY_LEVELS).map((level) => (
-          <div key={level.label} className="flex items-center gap-1.5">
+          <div key={level.label} className="flex items-center gap-2">
             <span
               className="w-2 h-2 rounded-full shrink-0"
               style={{ backgroundColor: level.color }}
