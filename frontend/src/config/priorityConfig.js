@@ -3,6 +3,14 @@
  * Must match the backend priorityConfig.js
  */
 
+// Mirrors backend/src/config/priorityConfig.js PRIORITY_WEIGHTS
+export const PRIORITY_WEIGHTS = [
+  { key: 'severity', label: 'Severity', weight: 0.40 },
+  { key: 'corroboration', label: 'Corroboration', weight: 0.30 },
+  { key: 'upvotes', label: 'Community upvotes', weight: 0.20 },
+  { key: 'age', label: 'Report age', weight: 0.10 },
+];
+
 export const PRIORITY_LEVELS = {
   CRITICAL: {
     min: 90,

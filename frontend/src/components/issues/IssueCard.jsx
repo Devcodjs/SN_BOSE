@@ -124,7 +124,7 @@ const s = {
   badgeRow: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '6px',
+    gap: '3mm',
     alignItems: 'center',
   },
 
