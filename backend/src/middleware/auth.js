@@ -50,4 +50,23 @@ const authorize = (...roles) => (req, res, next) => {
 const requireAdmin = [protect, authorize('admin')];
 const requireMunicipality = [protect, authorize('municipality', 'admin')];
 
-module.exports = { protect, optionalAuth, authorize, requireAdmin, requireMunicipality };
+const requireIdentityVerification = (req, res, next) => {
+  if (!req.user) return sendError(res, 'Authentication required', 401);
+
+  const isVerified = req.user.identityVerified || 
+                     ['demo_verified', 'verified'].includes(req.user.verificationStatus);
+
+  if (!isVerified) {
+    return sendError(
+      res,
+      'Aadhaar identity verification is required to submit issue reports. Please verify your identity first.',
+      403,
+      null,
+      'IDENTITY_VERIFICATION_REQUIRED'
+    );
+  }
+
+  next();
+};
+
+module.exports = { protect, optionalAuth, authorize, requireAdmin, requireMunicipality, requireIdentityVerification };

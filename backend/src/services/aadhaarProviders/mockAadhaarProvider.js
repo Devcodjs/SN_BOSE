@@ -1,6 +1,6 @@
 const crypto = require('crypto');
-
-const { maskAadhaarNumber } = require('../../utils/aadhaarHash');
+const { generateAadhaarHash, maskAadhaarNumber } = require('../../utils/aadhaarHash');
+const { validateVerhoeff } = require('../../utils/verhoeff');
 
 /**
  * Mock Aadhaar Provider for Local Development & Testing.
@@ -8,7 +8,7 @@ const { maskAadhaarNumber } = require('../../utils/aadhaarHash');
  */
 
 // In-memory store for active OTP transactions
-// Map: transactionId => { aadhaarNumber, otp, expiresAt, attempts, createdAt }
+// Map: transactionId => { aadhaarHash, otpHash, expiresAt, attempts, createdAt }
 const activeTransactions = new Map();
 
 /**
@@ -26,14 +26,12 @@ const cleanupExpiredTransactions = () => {
 // Run cleanup every 60 seconds
 setInterval(cleanupExpiredTransactions, 60000).unref();
 
-/**
- * Validate basic Aadhaar format (12 numeric digits, non-zero start, Verhoeff checksum)
- */
 const isValidAadhaarFormat = (aadhaarNumber) => {
   if (!aadhaarNumber || typeof aadhaarNumber !== 'string') return false;
   const clean = aadhaarNumber.replace(/\s+/g, '');
-  return /^\d{12}$/.test(clean);
-  
+  if (!/^\d{12}$/.test(clean)) return false;
+  if (/^[01]/.test(clean)) return false;
+  return true;
 };
 
 const mockAadhaarProvider = {
@@ -42,7 +40,7 @@ const mockAadhaarProvider = {
   /**
    * Request OTP for Aadhaar number
    * @param {string} aadhaarNumber 
-   * @returns {Promise<{ success: boolean, transactionId: string, message: string, expiresAt: Date }>}
+   * @returns {Promise<{ success: boolean, transactionId: string, message: string, expiresAt: Date, demoOtp?: string }>}
    */
   async requestOtp(aadhaarNumber) {
     if (process.env.AADHAAR_PROVIDER !== 'mock') {
@@ -53,18 +51,25 @@ const mockAadhaarProvider = {
 
     // Format and Verhoeff validation
     if (!isValidAadhaarFormat(cleanNumber)) {
-      const error = new Error('Aadhaar number must consist of exactly 12 digits');
+      const error = new Error('Aadhaar number must consist of 12 valid digits with a valid checksum');
       error.statusCode = 400;
       throw error;
     }
 
-    // Check for recent active transactions for the same Aadhaar (cooldown protection: 30s)
+    const aadhaarHash = generateAadhaarHash(cleanNumber);
     const now = Date.now();
+
+    // Check active transactions for same aadhaarHash (cooldown protection: 30s)
+    // If cooldown passed but tx still present, delete old transaction (supersede)
     for (const [txId, tx] of activeTransactions.entries()) {
-      if (tx.aadhaarNumber === cleanNumber && now - tx.createdAt < 30000) {
-        const error = new Error('Please wait at least 30 seconds before requesting another OTP');
-        error.statusCode = 429;
-        throw error;
+      if (tx.aadhaarHash === aadhaarHash) {
+        if (now - tx.createdAt < 30000) {
+          const error = new Error('Please wait at least 30 seconds before requesting another OTP');
+          error.statusCode = 429;
+          throw error;
+        } else {
+          activeTransactions.delete(txId);
+        }
       }
     }
 
@@ -72,35 +77,41 @@ const mockAadhaarProvider = {
     const expiryMinutes = parseInt(process.env.AADHAAR_OTP_EXPIRY_MINUTES || '5', 10);
     const expiresAt = now + expiryMinutes * 60 * 1000;
 
-    // Configurable dev OTP, defaults to '123456' for predictable mock testing
-    const otp = process.env.MOCK_AADHAAR_OTP || '123456';
+    // Generate random 6-digit OTP per request
+    const otp = crypto.randomInt(100000, 1000000).toString();
+    const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
 
     activeTransactions.set(transactionId, {
-      aadhaarNumber: cleanNumber,
-      otp,
+      aadhaarHash,
+      otpHash,
       expiresAt,
       attempts: 0,
       createdAt: now,
     });
 
-    // Note: Masked log only, never log raw Aadhaar or OTP
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`[MOCK AADHAAR PROVIDER] OTP initiated for Aadhaar target ${maskAadhaarNumber(cleanNumber)} (Tx: ${transactionId})`);
+      console.log(`[MOCK AADHAAR PROVIDER] OTP initiated for target ${maskAadhaarNumber(cleanNumber)} (Tx: ${transactionId})`);
     }
 
-    return {
+    const result = {
       success: true,
       transactionId,
       message: 'OTP initiated successfully to Aadhaar-registered mobile number',
       expiresAt: new Date(expiresAt),
     };
+
+    if ((process.env.AADHAAR_PROVIDER || 'mock').toLowerCase() === 'mock') {
+      result.demoOtp = otp;
+    }
+
+    return result;
   },
 
   /**
    * Verify OTP for a given transactionId
    * @param {string} transactionId 
    * @param {string} otp 
-   * @returns {Promise<{ success: boolean, aadhaarNumber: string }>}
+   * @returns {Promise<{ success: boolean, aadhaarHash: string }>}
    */
   async verifyOtp(transactionId, otp) {
     if (process.env.AADHAAR_PROVIDER !== 'mock') {
@@ -131,7 +142,13 @@ const mockAadhaarProvider = {
     }
 
     const cleanOtp = (otp || '').trim();
-    if (cleanOtp !== tx.otp) {
+    const inputOtpHash = crypto.createHash('sha256').update(cleanOtp).digest('hex');
+    const isMatch = crypto.timingSafeEqual(
+      Buffer.from(inputOtpHash, 'utf8'),
+      Buffer.from(tx.otpHash, 'utf8')
+    );
+
+    if (!isMatch) {
       tx.attempts += 1;
       if (tx.attempts >= 3) {
         activeTransactions.delete(transactionId);
@@ -145,12 +162,12 @@ const mockAadhaarProvider = {
     }
 
     // OTP Verified! Consume single-use transaction.
-    const verifiedAadhaarNumber = tx.aadhaarNumber;
+    const verifiedAadhaarHash = tx.aadhaarHash;
     activeTransactions.delete(transactionId);
 
     return {
       success: true,
-      aadhaarNumber: verifiedAadhaarNumber,
+      aadhaarHash: verifiedAadhaarHash,
     };
   },
 

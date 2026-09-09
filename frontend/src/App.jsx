@@ -11,6 +11,7 @@ const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const CitizenDashboard = lazy(() => import('./pages/citizen/CitizenDashboard'));
 const CreateIssuePage = lazy(() => import('./pages/citizen/CreateIssuePage'));
+const VerifyIdentityPage = lazy(() => import('./pages/citizen/VerifyIdentityPage'));
 const IssueDetailPage = lazy(() => import('./pages/citizen/IssueDetailPage'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AnalyticsPage = lazy(() => import('./pages/admin/AnalyticsPage'));
@@ -24,13 +25,6 @@ function Loading() {
   );
 }
 
-function RootRedirect() {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
-  if (loading) return <Loading />;
-  if (!isAuthenticated) return <LandingPage />;
-  return <Navigate to={isAdmin ? '/admin' : '/dashboard'} replace />;
-}
-
 export default function App() {
   return (
     <div className="min-h-screen bg-surface-secondary flex flex-col w-full overflow-x-hidden">
@@ -39,7 +33,7 @@ export default function App() {
         <Suspense fallback={<Loading />}>
           <AnimatePresence mode="wait">
             <Routes>
-              <Route path="/" element={<RootRedirect />} />
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
 
@@ -47,6 +41,7 @@ export default function App() {
               <Route element={<ProtectedRoute roles={['citizen']} />}>
                 <Route path="/dashboard" element={<CitizenDashboard />} />
                 <Route path="/issues/new" element={<CreateIssuePage />} />
+                <Route path="/verify-identity" element={<VerifyIdentityPage />} />
               </Route>
 
               {/* Shared auth */}
@@ -69,4 +64,3 @@ export default function App() {
     </div>
   );
 }
-

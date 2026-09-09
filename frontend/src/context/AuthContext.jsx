@@ -42,18 +42,22 @@ export function AuthProvider({ children }) {
 
   const requestAadhaarOtp = async (aadhaarNumber) => {
     const { data } = await API.post('/auth/aadhaar/request-otp', { aadhaarNumber });
-    return data.data; // { transactionId, expiresAt }
+    return data.data; // { transactionId, expiresAt, demoOtp? }
   };
 
   const verifyAadhaarOtp = async (transactionId, otp) => {
     const { data } = await API.post('/auth/aadhaar/verify-otp', { transactionId, otp });
-    if (data.data.requiresOnboarding) {
+    if (data.data?.requiresOnboarding) {
       return data.data; // { requiresOnboarding: true, onboardingToken, maskedAadhaar }
     }
-    const token = data.data.token || data.data.accessToken;
-    setAccessToken(token);
-    setUser(data.data.user);
-    return { user: data.data.user };
+    if (data.data?.token) {
+      const token = data.data.token || data.data.accessToken;
+      setAccessToken(token);
+    }
+    if (data.data?.user) {
+      setUser(data.data.user);
+    }
+    return data.data;
   };
 
   const completeAadhaarOnboarding = async (onboardingData) => {
@@ -80,7 +84,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      user, loading, login, register, logout,
+      user, loading, loadUser, login, register, logout,
       requestAadhaarOtp, verifyAadhaarOtp, completeAadhaarOnboarding, linkAadhaarAccount,
       isAuthenticated: !!user,
       isAdmin: user?.role === 'admin',

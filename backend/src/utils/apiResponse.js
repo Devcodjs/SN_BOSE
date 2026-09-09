@@ -22,11 +22,15 @@ const sendSuccess = (res, data = null, message = 'Success', statusCode = 200) =>
   return res.status(statusCode).json(response);
 };
 
-const sendError = (res, message = 'Server Error', statusCode = 500, errors = null) => {
+const sendError = (res, message = 'Server Error', statusCode = 500, errors = null, code = null) => {
   const response = {
     success: false,
     message,
   };
+
+  if (code) {
+    response.code = code;
+  }
 
   if (errors) {
     response.errors = errors;

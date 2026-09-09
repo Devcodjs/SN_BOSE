@@ -393,7 +393,7 @@ export default function LoginPage() {
       setMaskedAadhaar(masked);
       setAadhaarStep(2);
       setResendTimer(30);
-      setInfo('OTP sent to registered mobile number (Development Mock OTP: 123456)');
+      setInfo(res.demoOtp ? `OTP sent to registered mobile number (Development Demo OTP: ${res.demoOtp})` : 'OTP sent to registered mobile number');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to initiate Aadhaar OTP request');
     } finally {
@@ -440,7 +440,7 @@ export default function LoginPage() {
       const res = await requestAadhaarOtp(rawAadhaar);
       setTransactionId(res.transactionId);
       setResendTimer(30);
-      setInfo('New OTP sent successfully (Mock OTP: 123456)');
+      setInfo(res.demoOtp ? `New OTP sent successfully (Development Demo OTP: ${res.demoOtp})` : 'New OTP sent successfully');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to resend OTP');
     } finally {

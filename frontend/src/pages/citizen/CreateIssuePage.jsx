@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,6 +13,7 @@ import API from '../../services/api';
 import PageWrapper from '../../components/layout/PageWrapper';
 import MapPicker from '../../components/map/MapPicker';
 import Button from '../../components/ui/Button';
+import { useAuth } from '../../context/AuthContext';
 
 /* ─────────────── Constants ─────────────── */
 const categories = [
@@ -233,6 +234,15 @@ function StyledTextarea({ style, ...props }) {
 export default function CreateIssuePage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user && !user.identityVerified && !['demo_verified', 'verified'].includes(user.verificationStatus)) {
+      toast.error('Aadhaar identity verification is required before reporting an issue.');
+      navigate('/verify-identity?redirect=/issues/new', { replace: true });
+    }
+  }, [user, navigate]);
+
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [previews, setPreviews] = useState([]);
@@ -293,6 +303,11 @@ export default function CreateIssuePage() {
       
       setTimeout(() => navigate(`/issues/${res.data.data._id}`), 2000);
     } catch (err) {
+      if (err.response?.data?.code === 'IDENTITY_VERIFICATION_REQUIRED' || (err.response?.status === 403 && err.response?.data?.message?.toLowerCase().includes('identity'))) {
+        toast.error('Identity verification is required to submit issue reports');
+        navigate('/verify-identity?redirect=/issues/new');
+        return;
+      }
       toast.error(err.response?.data?.message || 'Failed to report issue');
     } finally {
       setLoading(false);
