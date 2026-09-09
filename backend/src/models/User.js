@@ -51,7 +51,7 @@ const userSchema = new mongoose.Schema(
 
     // Identity Verification
     identityVerified: { type: Boolean, default: false },
-    verificationStatus: { type: String, enum: ['unverified', 'pending', 'verified', 'failed'], default: 'unverified' },
+    verificationStatus: { type: String, enum: ['unverified', 'pending', 'demo_verified', 'verified', 'failed'], default: 'unverified' },
     verificationProvider: { type: String, default: null },
     verificationReference: { type: String, default: null },
     verifiedAt: { type: Date, default: null },

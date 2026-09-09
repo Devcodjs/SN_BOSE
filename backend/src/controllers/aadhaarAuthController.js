@@ -32,7 +32,7 @@ const generateOnboardingToken = (aadhaarHash) => {
 /**
  * @route   POST /api/auth/aadhaar/request-otp
  * @desc    Initiate Aadhaar OTP verification
- * @access  Public
+ * @access  Public (optional auth attached if Bearer token provided)
  */
 const requestOtp = async (req, res, next) => {
   try {
@@ -44,12 +44,17 @@ const requestOtp = async (req, res, next) => {
     const { aadhaarNumber } = req.body;
     const result = await aadhaarService.requestAadhaarOtp(aadhaarNumber);
 
+    const responseData = {
+      transactionId: result.transactionId,
+      expiresAt: result.expiresAt,
+    };
+    if (result.demoOtp) {
+      responseData.demoOtp = result.demoOtp;
+    }
+
     sendSuccess(
       res,
-      {
-        transactionId: result.transactionId,
-        expiresAt: result.expiresAt,
-      },
+      responseData,
       result.message
     );
   } catch (error) {
@@ -62,8 +67,8 @@ const requestOtp = async (req, res, next) => {
 
 /**
  * @route   POST /api/auth/aadhaar/verify-otp
- * @desc    Verify Aadhaar OTP & authenticate or initiate onboarding
- * @access  Public
+ * @desc    Verify Aadhaar OTP & update logged in user identity or initiate onboarding
+ * @access  Public (optional auth attached if Bearer token provided)
  */
 const verifyOtp = async (req, res, next) => {
   try {
@@ -76,12 +81,43 @@ const verifyOtp = async (req, res, next) => {
 
     // Verify OTP via Aadhaar Service
     const verificationResult = await aadhaarService.verifyAadhaarOtp(transactionId, otp);
-    const rawAadhaarNumber = verificationResult.aadhaarNumber;
+    const aadhaarHash = verificationResult.aadhaarHash || generateAadhaarHash(verificationResult.aadhaarNumber);
 
-    // Compute server-side privacy-preserving HMAC hash
-    const aadhaarHash = generateAadhaarHash(rawAadhaarNumber);
+    // If user is logged in (req.user set by optionalAuth or protect middleware)
+    if (req.user) {
+      // Check if this aadhaarHash is already linked to another user account
+      const existingUser = await User.findOne({
+        aadhaarHash,
+        _id: { $ne: req.user._id },
+      });
 
-    // Look for existing user linked to this aadhaarHash
+      if (existingUser) {
+        return sendError(res, 'This Aadhaar identity is already linked to another account', 409);
+      }
+
+      req.user.identityVerified = true;
+      req.user.verificationStatus = 'demo_verified';
+      req.user.verificationProvider = 'mock';
+      req.user.verificationReference = `MOCK-VERIFIED-${transactionId}`;
+      req.user.verifiedAt = new Date();
+      req.user.aadhaarHash = aadhaarHash;
+      await req.user.save();
+
+      const userObj = req.user.toObject();
+
+      return sendSuccess(
+        res,
+        {
+          user: userObj,
+          verified: true,
+          identityVerified: true,
+          verificationStatus: 'demo_verified',
+        },
+        'Aadhaar identity verification successful'
+      );
+    }
+
+    // Unauthenticated flow: Look for existing user linked to this aadhaarHash
     const user = await User.findOne({ aadhaarHash });
 
     if (user) {
@@ -97,6 +133,8 @@ const verifyOtp = async (req, res, next) => {
             email: user.email,
             role: user.role,
             phone: user.phone,
+            identityVerified: user.identityVerified,
+            verificationStatus: user.verificationStatus,
           },
           token,
         },
@@ -106,14 +144,12 @@ const verifyOtp = async (req, res, next) => {
 
     // Account not yet linked — return onboarding token for safe registration or account linking
     const onboardingToken = generateOnboardingToken(aadhaarHash);
-    const masked = maskAadhaarNumber(rawAadhaarNumber);
 
     return sendSuccess(
       res,
       {
         requiresOnboarding: true,
         onboardingToken,
-        maskedAadhaar: masked,
       },
       'Aadhaar verified successfully. Please complete account linking or new citizen registration.'
     );
@@ -168,10 +204,10 @@ const completeOnboarding = async (req, res, next) => {
     // Double check aadhaarHash is not linked to another user
     const existingAadhaar = await User.findOne({ aadhaarHash: decoded.aadhaarHash });
     if (existingAadhaar) {
-      return sendError(res, 'This Aadhaar is already linked to an existing account', 400);
+      return sendError(res, 'This Aadhaar is already linked to an existing account', 409);
     }
 
-    // Create user with aadhaarHash
+    // Create user with aadhaarHash & identity verified status
     const user = await User.create({
       name,
       email,
@@ -179,6 +215,11 @@ const completeOnboarding = async (req, res, next) => {
       phone,
       role: 'citizen',
       aadhaarHash: decoded.aadhaarHash,
+      identityVerified: true,
+      verificationStatus: 'demo_verified',
+      verificationProvider: 'mock',
+      verificationReference: `MOCK-ONBOARDED-${Date.now()}`,
+      verifiedAt: new Date(),
     });
 
     const token = generateToken(user._id);
@@ -192,6 +233,8 @@ const completeOnboarding = async (req, res, next) => {
           email: user.email,
           role: user.role,
           phone: user.phone,
+          identityVerified: user.identityVerified,
+          verificationStatus: user.verificationStatus,
         },
         token,
       },
@@ -243,8 +286,19 @@ const linkAccount = async (req, res, next) => {
       return sendError(res, 'This account is already linked to another Aadhaar identity', 400);
     }
 
-    // Link aadhaarHash
+    // Check if this aadhaarHash is already linked to another user account
+    const existingAadhaar = await User.findOne({ aadhaarHash: decoded.aadhaarHash });
+    if (existingAadhaar) {
+      return sendError(res, 'This Aadhaar is already linked to an existing account', 409);
+    }
+
+    // Link aadhaarHash and mark identity verified
     user.aadhaarHash = decoded.aadhaarHash;
+    user.identityVerified = true;
+    user.verificationStatus = 'demo_verified';
+    user.verificationProvider = 'mock';
+    user.verificationReference = `MOCK-LINKED-${Date.now()}`;
+    user.verifiedAt = new Date();
     await user.save();
 
     const token = generateToken(user._id);
@@ -258,6 +312,8 @@ const linkAccount = async (req, res, next) => {
           email: user.email,
           role: user.role,
           phone: user.phone,
+          identityVerified: user.identityVerified,
+          verificationStatus: user.verificationStatus,
         },
         token,
       },

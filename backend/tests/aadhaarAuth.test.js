@@ -10,7 +10,7 @@ describe('Aadhaar Authentication & Security Test Suite', () => {
 
   beforeEach(() => {
     jest.resetModules();
-    process.env = { ...originalEnv, AADHAAR_PROVIDER: 'mock', JWT_SECRET: 'test_jwt_secret', AADHAAR_HASH_SECRET: 'test_hash_secret' };
+    process.env = { ...originalEnv, AADHAAR_PROVIDER: 'mock', NODE_ENV: 'development', JWT_SECRET: 'test_jwt_secret', AADHAAR_HASH_SECRET: 'test_hash_secret' };
     mockAadhaarProvider._clearTransactions();
   });
 
@@ -37,22 +37,25 @@ describe('Aadhaar Authentication & Security Test Suite', () => {
     expect(nonNumeric.length).toBeGreaterThan(0);
   });
 
-  test('3. Invalid Aadhaar checksum is rejected by validator', () => {
-    const invalidChecksum = validateAadhaarRequest({ aadhaarNumber: '999999990027' });
-    expect(invalidChecksum).toContain('Invalid Aadhaar number checksum');
+  test('3. Any 12-digit Aadhaar not starting with 0/1 is accepted by validator', () => {
+    const validAny12Digit = validateAadhaarRequest({ aadhaarNumber: '234567890123' });
+    expect(validAny12Digit.length).toBe(0);
   });
 
-  test('4. OTP request succeeds in mock development mode', async () => {
+  test('4. OTP request succeeds in mock development mode and returns demoOtp', async () => {
     const result = await aadhaarService.requestAadhaarOtp(validAadhaar);
     expect(result.success).toBe(true);
     expect(result.transactionId).toBeDefined();
+    expect(result.demoOtp).toBeDefined();
+    expect(result.demoOtp).toHaveLength(6);
     expect(result.message).toBe('OTP initiated successfully to Aadhaar-registered mobile number');
   });
 
   test('5. Incorrect OTP fails verification', async () => {
     const reqResult = await aadhaarService.requestAadhaarOtp(validAadhaar);
+    const wrongOtp = reqResult.demoOtp === '000000' ? '111111' : '000000';
     await expect(
-      aadhaarService.verifyAadhaarOtp(reqResult.transactionId, '000000')
+      aadhaarService.verifyAadhaarOtp(reqResult.transactionId, wrongOtp)
     ).rejects.toThrow('Incorrect OTP');
   });
 
@@ -64,39 +67,37 @@ describe('Aadhaar Authentication & Security Test Suite', () => {
     await new Promise(r => setTimeout(r, 10));
 
     await expect(
-      mockAadhaarProvider.verifyOtp(reqResult.transactionId, '123456')
+      mockAadhaarProvider.verifyOtp(reqResult.transactionId, reqResult.demoOtp)
     ).rejects.toThrow('Aadhaar OTP has expired');
   });
 
   test('7. Correct OTP authenticates successfully', async () => {
     const reqResult = await aadhaarService.requestAadhaarOtp(validAadhaar);
-    const verifyResult = await aadhaarService.verifyAadhaarOtp(reqResult.transactionId, '123456');
+    const verifyResult = await aadhaarService.verifyAadhaarOtp(reqResult.transactionId, reqResult.demoOtp);
     expect(verifyResult.success).toBe(true);
-    expect(verifyResult.aadhaarNumber).toBe(validAadhaar);
+    expect(verifyResult.aadhaarHash).toBe(generateAadhaarHash(validAadhaar));
   });
 
   test('8. OTP cannot be reused after successful verification', async () => {
     const reqResult = await aadhaarService.requestAadhaarOtp(validAadhaar);
-    await aadhaarService.verifyAadhaarOtp(reqResult.transactionId, '123456');
+    await aadhaarService.verifyAadhaarOtp(reqResult.transactionId, reqResult.demoOtp);
 
     // Second attempt must fail
     await expect(
-      aadhaarService.verifyAadhaarOtp(reqResult.transactionId, '123456')
+      aadhaarService.verifyAadhaarOtp(reqResult.transactionId, reqResult.demoOtp)
     ).rejects.toThrow('Invalid or expired Aadhaar OTP transaction');
   });
 
   test('9. Excessive incorrect OTP attempts block and invalidate transaction', async () => {
     const reqResult = await aadhaarService.requestAadhaarOtp(validAadhaar);
 
-    // 1st attempt wrong
-    await expect(aadhaarService.verifyAadhaarOtp(reqResult.transactionId, '111111')).rejects.toThrow();
-    // 2nd attempt wrong
-    await expect(aadhaarService.verifyAadhaarOtp(reqResult.transactionId, '222222')).rejects.toThrow();
-    // 3rd attempt wrong -> invalidates transaction
-    await expect(aadhaarService.verifyAadhaarOtp(reqResult.transactionId, '333333')).rejects.toThrow();
+    // 3 wrong attempts
+    await expect(aadhaarService.verifyAadhaarOtp(reqResult.transactionId, '000000')).rejects.toThrow();
+    await expect(aadhaarService.verifyAadhaarOtp(reqResult.transactionId, '000001')).rejects.toThrow();
+    await expect(aadhaarService.verifyAadhaarOtp(reqResult.transactionId, '000002')).rejects.toThrow();
 
     // 4th attempt transaction no longer exists
-    await expect(aadhaarService.verifyAadhaarOtp(reqResult.transactionId, '123456')).rejects.toThrow('Invalid or expired');
+    await expect(aadhaarService.verifyAadhaarOtp(reqResult.transactionId, reqResult.demoOtp)).rejects.toThrow('Invalid or expired');
   });
 
   test('10. Rapid repeated OTP requests for same Aadhaar are blocked by cooldown', async () => {

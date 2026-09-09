@@ -100,9 +100,16 @@ const cleanupUploadedFiles = async (req) => {
 
 const createIssue = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
-  if (!user.identityVerified) {
+  const isVerified = user.identityVerified || ['demo_verified', 'verified'].includes(user.verificationStatus);
+  if (!isVerified) {
     await cleanupUploadedFiles(req);
-    return sendError(res, 'Identity verification is required to report an issue', 403);
+    return sendError(
+      res,
+      'Aadhaar identity verification is required to submit issue reports. Please verify your identity first.',
+      403,
+      null,
+      'IDENTITY_VERIFICATION_REQUIRED'
+    );
   }
 
   // 2. Validate input

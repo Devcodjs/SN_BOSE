@@ -102,6 +102,8 @@ const validateStatusUpdate = (body) => {
   return errors;
 };
 
+const { validateVerhoeff } = require('../utils/verhoeff');
+
 const validateAadhaarRequest = (body) => {
   const errors = [];
   const { aadhaarNumber } = body;
@@ -115,6 +117,8 @@ const validateAadhaarRequest = (body) => {
 
   if (!/^\d{12}$/.test(cleanNumber)) {
     errors.push('Aadhaar number must consist of exactly 12 digits');
+  } else if (/^[01]/.test(cleanNumber)) {
+    errors.push('Aadhaar number cannot start with 0 or 1');
   }
 
   return errors;

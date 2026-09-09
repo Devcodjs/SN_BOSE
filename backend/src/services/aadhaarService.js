@@ -48,7 +48,7 @@ const aadhaarService = {
     const providerName = (process.env.AADHAAR_PROVIDER || 'mock').toLowerCase();
     if (providerName === 'mock') {
       console.warn('⚠️  [SECURITY NOTICE] Aadhaar Authentication running with DEVELOPMENT MOCK PROVIDER (AADHAAR_PROVIDER=mock).');
-      console.warn('   Mock OTP defaults to 123456. Do NOT use this mode in production!\n');
+      console.warn('   Mock OTPs are randomly generated per request. Do NOT use this mode in production!\n');
     } else {
       console.log(`🔒 Aadhaar Authentication configured with production provider: ${providerName}\n`);
     }
