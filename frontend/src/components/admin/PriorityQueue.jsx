@@ -110,11 +110,12 @@ export default function PriorityQueue() {
             <button
               key={f.key}
               onClick={() => { setFilter(f.key); setPage(1); }}
-              className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-[9px] text-[13px] font-semibold whitespace-nowrap transition-colors border ${
+              className={`inline-flex items-center gap-1.5 rounded-[9px] text-[13px] font-semibold whitespace-nowrap transition-colors border ${
                 active
                   ? 'bg-primary-600 border-primary-600 text-white'
                   : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
               }`}
+              style={{ padding: '2mm' }}
             >
               {f.color && (
                 <span

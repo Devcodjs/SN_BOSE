@@ -27,7 +27,10 @@ export default function IdentityVerificationCard({ user }) {
   }
 
   return (
-    <Card className="bg-gradient-to-br from-orange-50 to-amber-50/30 border-orange-100 p-[30px]">
+    <Card
+      className="bg-gradient-to-br from-orange-50 to-amber-50/30 border-orange-100"
+      style={{ padding: '2mm' }}
+    >
       <div className="flex flex-col md:flex-row gap-6 md:items-center">
         <div className="flex items-start gap-4 flex-1">
           <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center shrink-0">
