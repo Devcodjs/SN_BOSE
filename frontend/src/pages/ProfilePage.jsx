@@ -1,34 +1,119 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import PageWrapper from '../components/layout/PageWrapper';
 import Avatar from '../components/ui/Avatar';
 import Card from '../components/ui/Card';
 import { TreeCounter, BadgeDisplay, CertificateCard } from '../components/rewards/RewardWidgets';
-import { Mail, Phone, Calendar, Shield } from 'lucide-react';
+import { Mail, Phone, Calendar, Shield, Camera, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const fileInputRef = useRef(null);
+  const [preview, setPreview] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
+
   const { data: rewards } = useQuery({
     queryKey: ['my-rewards'],
     queryFn: () => API.get('/rewards/my').then(r => r.data.data),
   });
 
+  const avatarMutation = useMutation({
+    mutationFn: (file) => {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      return API.put('/users/me/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }).then(r => r.data.data);
+    },
+    onSuccess: (data) => {
+      updateUser?.({ ...user, avatarUrl: data.avatarUrl });
+    },
+    onError: () => {
+      setUploadError('Could not update your photo. Please try again.');
+      setPreview(null);
+    },
+  });
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
+
   if (!user) return null;
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Please choose an image file.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Image must be under 5MB.');
+      return;
+    }
+
+    setUploadError(null);
+    setPreview(URL.createObjectURL(file));
+    avatarMutation.mutate(file);
+  };
+
+  const avatarSrc = preview || user.avatarUrl;
 
   return (
     <PageWrapper className="py-12">
-      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-10 lg:px-8 ">
         {/* Profile Header */}
         <Card hover={false} className="p-10 mb-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
-            <Avatar name={user.name} size="lg" className="w-24 h-24 text-3xl" />
+            <div className="relative shrink-0">
+              {avatarSrc ? (
+                <img
+                  src={avatarSrc}
+                  alt={user.name}
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+              ) : (
+                <Avatar name={user.name} size="lg" className="w-24 h-24 text-3xl" />
+              )}
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={avatarMutation.isPending}
+                aria-label="Change profile photo"
+                className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-600 shadow-md ring-1 ring-gray-200 hover:bg-gray-50 disabled:opacity-60 transition-colors"
+              >
+                {avatarMutation.isPending ? (
+                  <Loader2 size={14} className="animate-spin text-primary-600" />
+                ) : (
+                  <Camera size={14} />
+                )}
+              </button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+
             <div className="text-center sm:text-left flex-1">
               <h1 className="text-3xl font-extrabold text-gray-900">{user.name}</h1>
               <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 text-sm font-semibold rounded-lg bg-primary-50 text-primary-700 uppercase tracking-wide">
                 <Shield size={14} /> {user.role}
               </span>
+              {uploadError && (
+                <p className="mt-2 text-sm text-red-600">{uploadError}</p>
+              )}
               <div className="mt-6 space-y-3 text-base text-gray-500">
                 <p className="flex items-center gap-3"><Mail size={18} /> {user.email}</p>
                 {user.phone && <p className="flex items-center gap-3"><Phone size={18} /> {user.phone}</p>}
