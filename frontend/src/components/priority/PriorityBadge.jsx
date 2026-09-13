@@ -19,10 +19,11 @@ export default function PriorityBadge({ score, label, className = '' }) {
       initial={{ opacity: 0, y: 2 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18, ease: 'easeOut' }}
-      className={`inline-flex items-center gap-1.5 pl-2 pr-2.5 py-[3px] rounded-full border ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-[9px] border ${className}`}
       style={{
         backgroundColor: level.background,
         borderColor: level.border,
+        padding: '2mm',
       }}
     >
       {/* Status dot with soft halo — matches the dot convention already used
