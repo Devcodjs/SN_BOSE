@@ -55,16 +55,17 @@ export default function AbuseManagement() {
           <p className="text-sm text-gray-500 mt-1">Review flagged citizens to protect the platform's integrity.</p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {['pending', 'warned', 'restricted', 'reviewed_safe'].map(status => (
             <button
               key={status}
               onClick={() => { setFilter(status); setPage(1); }}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg capitalize transition-colors ${
-                filter === status 
-                  ? 'bg-gray-900 text-white' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              className={`text-[13px] font-semibold rounded-[9px] capitalize whitespace-nowrap border transition-colors ${
+                filter === status
+                  ? 'bg-primary-600 border-primary-600 text-white'
+                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
               }`}
+              style={{ padding: '2mm' }}
             >
               {status.replace('_', ' ')}
             </button>
