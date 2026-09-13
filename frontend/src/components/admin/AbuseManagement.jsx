@@ -46,7 +46,10 @@ export default function AbuseManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+      <div
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-xl border border-gray-200 shadow-sm"
+        style={{ padding: '3mm' }}
+      >
         <div>
           <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
             <ShieldAlert size={20} className="text-red-500" />
