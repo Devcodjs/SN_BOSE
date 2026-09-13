@@ -45,7 +45,7 @@ export default function AbuseManagement() {
   const flags = data?.data || [];
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col" style={{ gap: '5mm' }}>
       <div
         className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-xl border border-gray-200 shadow-sm"
         style={{ padding: '3mm' }}
